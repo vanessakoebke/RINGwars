@@ -4,10 +4,11 @@ import java.util.List;
 
 import model.Ring;
 
-public class LeereMove extends Strategy {
+public class Defensiv extends Strategy {
 
     @Override
     public List<String> move(Ring ring) {
+        // TODO Auto-generated method stub
         return null;
     }
 }

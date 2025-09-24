@@ -4,7 +4,6 @@ public class Knoten {
     private final int knotenNummer;
     private Besitz besitz;
     private int fernieAnzahl;
-    private boolean sichtbar;
 
     public Knoten(int knotenNummer, String besitz, int fernieAnzahl) {
         this.knotenNummer = knotenNummer;
@@ -45,11 +44,7 @@ public class Knoten {
     }
 
     public boolean isSichtbar() {
-        return sichtbar;
-    }
-
-    public void setSichtbar(boolean sichtbar) {
-        this.sichtbar = sichtbar;
+        return (besitz != Besitz.UNBEKANNT);
     }
     
     @Override
