@@ -30,18 +30,44 @@ public class Knoten {
     public Besitz getBesitz() {
         return besitz;
     }
+    
 
-    public void setBesitz(Besitz besitz) {
-        this.besitz = besitz;
-    }
+
 
     public int getFernieAnzahl() {
         return fernieAnzahl;
     }
-
-    public void setFernieAnzahl(int fernieAnzahl) {
-        this.fernieAnzahl = fernieAnzahl;
+    
+    public void addFernies(int fernies) throws MoveException{
+        if (besitz == Besitz.MEINS) {
+            this.fernieAnzahl += fernies;
+        } else  if (besitz == Besitz.UNKONTROLLIERT && fernies >0) {
+            besitz = Besitz.MEINS;
+            this.fernieAnzahl += fernies;
+        } else if (besitz == Besitz.SEINS) {
+            if (this.fernieAnzahl < fernies) {
+                this.fernieAnzahl = fernies;
+            } else {
+                throw new MoveException("Schlechter Zug: Du versuchst gerade den Gegner anzugreifen und setzt aber zu wenig Fernies ein. Knotennummer: " + knotenNummer);
+            }
+        } else if (besitz == Besitz.UNBEKANNT){
+            throw new MoveException("Ungültiger Zug: Du versuchst einen nicht-sichtbaren Knoten zu besetzen.");
+        }
     }
+    
+    public void removeFernies(int fernies) throws MoveException {
+        if (besitz == Besitz.MEINS && fernieAnzahl - fernies >= 0) {
+            this.fernieAnzahl -= fernies;
+            if (fernieAnzahl == 0) {
+                besitz = Besitz.UNKONTROLLIERT;
+            }
+        } else  if (besitz == Besitz.MEINS && fernieAnzahl - fernies < 0){
+            throw new MoveException("Ungültiger Zug: Du versuchst mehr Fernies von dem Knoten zu entfernen als vorhanden sind. Knotennummer: "+ knotenNummer);
+        } else {
+            throw new MoveException("Ungültiger Zug: Du versuchst Knoten von einem Knoten zu entfernen, der nicht dir gehört. Knotennummer: " + knotenNummer);
+        }
+    }
+
 
     public boolean isSichtbar() {
         return (besitz != Besitz.UNBEKANNT);

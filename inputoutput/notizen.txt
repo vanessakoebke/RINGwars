@@ -1,0 +1,4 @@
+Gegnerische Strategie: UNBEKANNT
+Angriffe insgesamt: 0
+Angriffe in der letzten Runde: 0
+Sichtbarkeitsreichweite: 4

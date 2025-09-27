@@ -2,11 +2,11 @@ package service;
 
 import java.util.List;
 
-import model.*;
+import model.Notizen;
+import model.Ring;
 
-public class Defensiv extends Strategy {
-
-    public Defensiv(Notizen notizen) {
+public class FallBack extends Strategy {
+    public FallBack(Notizen notizen) {
         super(notizen);
     }
 
