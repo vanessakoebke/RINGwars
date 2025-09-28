@@ -1,6 +1,7 @@
 package service;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import model.*;
@@ -111,35 +112,54 @@ public class Util {
         }
     }
 
-    public static Notizen notizenEinlesen(String agentenName) {
+    public static Notizen notizenEinlesen(String agentenName, Ring ring, int runde) {
         String dateipfad = agentenName  + "/notizen.txt";
-        String[] input = new String[5];
+        String[] input = new String[7];
         try (BufferedReader br = new BufferedReader(new FileReader(dateipfad))) {
             int i = 0;
             String zeile;
             while ((zeile = br.readLine()) != null) {
                 input[i++] = zeile;
             }
-        } catch (Exception e) {
+        }  catch (FileNotFoundException e) {
+            System.out.println("Es gibt noch keine Notiz-Datei. Sie wird diese Runde neu erzeugt");
+            return new Notizen(runde, 2);
+        }  catch (IOException e) {
             System.out.println("Die Datei notizen.txt konnte nicht eingelesen werden. Es wird eine neue Datei erzeugt.");
-            return new Notizen(2); //TODO korrigieren
-        }        
+            return new Notizen(runde, 2); 
+        }     
         Notizen notizen;
         try {
             String zeile1 = input[0].split(": ")[1];
             StrategieGegner strategie;
             switch(zeile1) {
-            case "AGGRESIV": strategie = StrategieGegner.AGRESSIV;
+            case "AGRESSIV": strategie = StrategieGegner.AGRESSIV;
             case "DEFENSIV": strategie = StrategieGegner.DEFENSIV;
             default: strategie = StrategieGegner.UNBEKANNT;
             }
-            int zeile2 =  Integer.parseInt(input[1].split(": ")[1]);
-            int zeile3 =  Integer.parseInt(input[2].split(": ")[1]);
-            int zeile4 =  Integer.parseInt(input[3].split(": ")[1]);
-            notizen = new Notizen(strategie, zeile2, zeile3, zeile4);
+            int angriffeGegnerGesamt =  Integer.parseInt(input[1].split(": ")[1]);
+            int angriffeGegnerLetzteRunde =  Integer.parseInt(input[2].split(": ")[1]);
+            int sichtbarkeit =  Integer.parseInt(input[3].split(": ")[1]);
+            String[] zeile5String = input[4].split(": ")[1].split(",");
+            int[] meineAngriffeLetzteRunde = new int[zeile5String.length];
+            for (int i = 0; i< zeile5String.length; i++) {
+                meineAngriffeLetzteRunde[i] = Integer.parseInt(zeile5String[i]);
+            }
+            double abgewehrteAngriffeGesamt = Double.parseDouble(input[6].split(": ")[1]);
+            int summeAbgewehrt = 0;
+            for (int knotenNummer : meineAngriffeLetzteRunde) {
+                if (ring.getKnotenMitNummer(knotenNummer).getBesitz() != Besitz.MEINS) {
+                    summeAbgewehrt++;
+                }
+            }
+            double abgewehrteAngriffeLetzteRunde = (double) (summeAbgewehrt / meineAngriffeLetzteRunde.length);
+            abgewehrteAngriffeGesamt = (abgewehrteAngriffeGesamt * (runde -1) + abgewehrteAngriffeLetzteRunde ) / runde;
+            double puffer = Double.parseDouble(input[8].split(": ")[1]);
+            notizen = new Notizen(runde, strategie, angriffeGegnerGesamt, angriffeGegnerLetzteRunde, sichtbarkeit, 
+                    abgewehrteAngriffeGesamt, abgewehrteAngriffeLetzteRunde, puffer);
         } catch (Exception e) {
-            System.out.println("Eingelesene notizen.txt ist leer.");
-            notizen = new Notizen(2);
+            System.out.println("Eingelesene notizen.txt ist leer oder fehlerhaft.");
+            notizen = new Notizen(runde, 2);
         }
         
         return notizen;

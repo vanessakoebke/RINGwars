@@ -13,7 +13,7 @@ public class Angriff extends Strategy {
     @Override
     public List<String> move(Ring ring) {
         Ausgabe ausgabe = new Ausgabe(ring.getMaxFerniesRunde());
-        double puffer = notizen.getStrategieGegner() == StrategieGegner.DEFENSIV ? 1.2 : 1.1;
+        double puffer = notizen.getPufferAgriff();
         while (ring.getFerniesVerfuegbar() > ring.getMinKnoten(Besitz.SEINS).getFernieAnzahl() * puffer) {
             Knoten knotenGegner = ring.getMinKnoten(Besitz.SEINS);
             int ferniesAngriff = (int) (knotenGegner.getFernieAnzahl() * puffer);

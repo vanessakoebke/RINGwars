@@ -82,6 +82,11 @@ public class Ring {
         
         }
     }
+    
+    public Knoten getKnotenMitNummer(int knotenNummer) {
+        Knoten knoten = filter(x -> x.getKnotenNummer() == knotenNummer);
+        return knoten;
+    }
 
     public void addFernies(int knotenNummer, int fernies) throws FernieException, MoveException {
         Knoten knoten = filter(x -> x.getKnotenNummer() == knotenNummer);
