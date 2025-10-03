@@ -5,56 +5,76 @@ import java.util.List;
 
 import model.*;
 
+/**
+ * Abstract class, which declares the methods that are common to all strategies and some utility methods (static).
+ */
 public abstract class Strategy {
-    Notizen notizen;
+    Notes notes;
 
-    public Strategy(Notizen notizen) {
-        this.notizen = notizen;
+    /**
+     * Initializes a strategy with the notes from the previous round.
+     * @param notes notes
+     */
+    public Strategy(Notes notes) {
+        this.notes = notes;
     }
 
+    /**
+     * Returns the output to be written in the move file.
+     * @param ring the ring
+     * @return output 
+     */
     public abstract List<String> move(Ring ring);
 
-    // Klassenmethode, die je nach aktuellem Status des Rings eine Strategie
-    // zurückliefert
-    public static Strategy getStrategy(Ring ring, Notizen notizen) {
+    /**
+     * Static method that returns a strategy based on the state of the ring and the notes.
+     * @param ring  ring
+     * @param notes notes
+     * @return selected strategy
+     */
+    public static Strategy getStrategy(Ring ring, Notes notes) {
         if (ring == null) {
-            return new LeereMove(notizen);
-        } else if (!ring.isGegnerSichtbar() || (ring.isGegnerSichtbar() && notizen.getStrategieGegner() != StrategieGegner.AGRESSIV)) {
-            return new Expansion(notizen);
-        } else if (ring.getDurchschnittFernieProKnoten(Besitz.SEINS) > ring.getDurchschnittFernieProKnoten(Besitz.MEINS)
-                * 2) {
-            return new Konsolidierung(notizen);
-        } else if ((ring.getFernies(Besitz.MEINS) > ring.getFernies(Besitz.SEINS))) {
-            return new Angriff(notizen);
+            return new EmptyMove(notes);
+        } else if (!ring.isOpponentVisible() || (ring.isOpponentVisible() && notes.getOpponentStrategy() != StrategyOpponent.AGRESSIVE)) {
+            return new Expansion(notes);
+        } else if (ring.getAverageFerniesPerNode(Ownership.THEIRS) > ring.getAverageFerniesPerNode(Ownership.MINE) * 2
+                || notes.getOpponentStrategy() == StrategyOpponent.AGRESSIVE) {
+            return new Consolidation(notes);
+        } else if ((ring.getFernies(Ownership.MINE) > ring.getFernies(Ownership.THEIRS))) {
+            return new Attack(notes);
 //        } else if (ring.getFernies(Besitz.MEINS) < ring.getFernies(Besitz.SEINS)) {
 //            return new Defensiv(notizen);
         } else {
-            return new FallBack(notizen); // TODO prüfen
+            return new FallBack(notes); 
         }
     }
     
-    public static StrategieGegner getGegnerischeStrategie() {
-        return StrategieGegner.UNBEKANNT;
+    /**
+     * Returns the opponent's strategy based on information from previous rounds if available.
+     * @return opponent's strategy
+     */
+    public static StrategyOpponent getGegnerischeStrategie() {
+        return StrategyOpponent.UNKNOWN;
     }
 
-    public void verteileRest(Ring ring, Ausgabe ausgabe) {
+    public void distributeUnused(Ring ring, Output ausgabe) {
         /*
          * Wenn nach Beendigung der jeweiligen Strategie noch Fernies verfügbar sind,
          * sollen diese wenn möglich alle verteilt werden. Zuerst werden Fernies auf die
          * unkontrollierten Knoten gesetzt.
          */
-        List<Knoten> aktuelleKnoten = ring.getKnoten(Besitz.UNKONTROLLIERT);
+        List<Node> aktuelleKnoten = ring.getNodes(Ownership.UNCONTROLLED);
         int ferniesAktuell;
-        while ((!ring.isRingVoll(Besitz.UNKONTROLLIERT)) && ring.getFerniesVerfuegbar() > 0) {
-            ferniesAktuell = ring.getFerniesVerfuegbar();
+        while ((!ring.isRingFull(Ownership.UNCONTROLLED)) && ring.getAvailableFernies() > 0) {
+            ferniesAktuell = ring.getAvailableFernies();
             try {
-                ring.addFernies(aktuelleKnoten.getFirst().getKnotenNummer(), ferniesAktuell);
-                ausgabe.upsert(aktuelleKnoten.getFirst().getKnotenNummer(), ferniesAktuell);
+                ring.addFernies(aktuelleKnoten.getFirst().getNodeNumber(), ferniesAktuell);
+                ausgabe.upsert(aktuelleKnoten.getFirst().getNodeNumber(), ferniesAktuell);
             } catch (FernieException e) {
-                ausgabe.upsert(aktuelleKnoten.getFirst().getKnotenNummer(), e.getFernies());
+                ausgabe.upsert(aktuelleKnoten.getFirst().getNodeNumber(), e.getFernies());
             } catch (MoveException e) {
                 System.out
-                        .println("Knotennummer " + aktuelleKnoten.getFirst().getKnotenNummer() + ": " + e.getMessage());
+                        .println("Knotennummer " + aktuelleKnoten.getFirst().getNodeNumber() + ": " + e.getMessage());
                 e.printStackTrace();
             } finally {
                 aktuelleKnoten.removeFirst();
@@ -64,16 +84,16 @@ public abstract class Strategy {
          * Wenn die unkontrollierten Knoten alle voll sind, sollen die restlichen
          * Fernies auf meine eigenen Knoten verteilt werden.
          */
-        while (!ring.isRingVoll(Besitz.MEINS) && ring.getFerniesVerfuegbar() > 0) {
-            Knoten knoten = ring.getMinKnoten(Besitz.MEINS);
-            ferniesAktuell = ring.getFerniesVerfuegbar();
+        while (!ring.isRingFull(Ownership.MINE) && ring.getAvailableFernies() > 0) {
+            Node knoten = ring.getMinNode(Ownership.MINE);
+            ferniesAktuell = ring.getAvailableFernies();
             try {
-                ring.addFernies(knoten.getKnotenNummer(), ferniesAktuell);
-                ausgabe.upsert(knoten.getKnotenNummer(), ferniesAktuell);
+                ring.addFernies(knoten.getNodeNumber(), ferniesAktuell);
+                ausgabe.upsert(knoten.getNodeNumber(), ferniesAktuell);
             } catch (FernieException e) {
-                ausgabe.upsert(knoten.getKnotenNummer(), e.getFernies());
+                ausgabe.upsert(knoten.getNodeNumber(), e.getFernies());
             } catch (MoveException e) {
-                System.out.println("Knotennummer " + knoten.getKnotenNummer() + ": " + e.getMessage());
+                System.out.println("Knotennummer " + knoten.getNodeNumber() + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -100,13 +120,13 @@ public abstract class Strategy {
 //            }
 //        }
     }
-    public void entferneUeberfluessige(Ring ring, Ausgabe ausgabe) {
-        for (Knoten k: ring.getKnoten(Besitz.MEINS)) {
+    public void removeUnnecessary(Ring ring, Output ausgabe) {
+        for (Node k: ring.getNodes(Ownership.MINE)) {
             try {
-                if (ring.getKnotenMitNummer(k.getKnotenNummer()).getFernieAnzahl() > 1) {
-                    int temp = ring.getKnotenMitNummer(k.getKnotenNummer()).getFernieAnzahl() - 1;
-                    ring.removeFernies(k.getKnotenNummer(), temp);
-                    ausgabe.remove(k.getKnotenNummer(), temp);
+                if (ring.getNodeByNumber(k.getNodeNumber()).getFernieCount() > 1) {
+                    int temp = ring.getNodeByNumber(k.getNodeNumber()).getFernieCount() - 1;
+                    ring.removeFernies(k.getNodeNumber(), temp);
+                    ausgabe.remove(k.getNodeNumber(), temp);
                 }
             } catch (MoveException e) {
                 continue;

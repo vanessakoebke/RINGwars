@@ -5,71 +5,71 @@ import java.util.*;
 import model.*;
 
 public class Expansion extends Strategy {
-    public Expansion(Notizen notizen) {
-        super(notizen);
+    public Expansion(Notes notes) {
+        super(notes);
     }
 
     @Override
     public List<String> move(Ring ring) {
         
-        Ausgabe ausgabe = new Ausgabe(ring.getMaxFerniesRunde());
-        entferneUeberfluessige(ring, ausgabe);
-        List<Knoten> freie = ring.getKnoten(Besitz.UNKONTROLLIERT);
-        Knoten knoten = null;
-        int anzahlFreie = freie.size();
+        Output output = new Output(ring.getMaxFerniesThisRound());
+        removeUnnecessary(ring, output);
+        List<Node> freeNodes = ring.getNodes(Ownership.UNCONTROLLED);
+        Node node = null;
+        int numberFreeNodes = freeNodes.size();
         /*
-         * Falls es mehr unkontrollierte Knoten als verfügbare Fernies gibt, sollen die Knoten
-         * am nächsten zum Startknoten zuerst belegt werden. Dafür füge ich abwechselnd
-         * auf den ersten und den letzten Knoten Fernies hinzu. Anschließend entferne
-         * ich jeweils den ersten oder letzten Knoten aus der Liste. Durch die Abfrage
-         * mit Modulo 2, füge ich abwechselnd links und rechts vom Startknoten Fernies
-         * hinzu.
+         * If there are more uncontrolled nodes than available fernies, the nodes closest
+         * to the starting node should be filled first. To do this, fernies are added
+         * alternately to the first and last node. Afterwards, the first or last node is
+         * removed from the list. By using a modulo 2, fernies are added alternately
+         * to the left and right of the starting node.
          */
-        if (ring.getFerniesVerfuegbar() < anzahlFreie) {
+
+        if (ring.getAvailableFernies() < numberFreeNodes) {
             int i = 0;
-            while (ring.getFerniesVerfuegbar() > 0 && !freie.isEmpty()) {
+            while (ring.getAvailableFernies() > 0 && !freeNodes.isEmpty()) {
                 try {
                     if (i % 2 == 0) {
-                        knoten = freie.getFirst();
-                        freie.removeFirst();
-                        ring.addFernies(knoten.getKnotenNummer(), 1);
-                        ausgabe.upsert(knoten.getKnotenNummer(), 1);
+                        node = freeNodes.getFirst();
+                        freeNodes.removeFirst();
+                        ring.addFernies(node.getNodeNumber(), 1);
+                        output.upsert(node.getNodeNumber(), 1);
                     } else {
-                        knoten = freie.getLast();
-                        freie.removeLast();
-                        ring.addFernies(knoten.getKnotenNummer(), 1);
-                        ausgabe.upsert(knoten.getKnotenNummer(), 1);
+                        node = freeNodes.getLast();
+                        freeNodes.removeLast();
+                        ring.addFernies(node.getNodeNumber(), 1);
+                        output.upsert(node.getNodeNumber(), 1);
                     }
                 }  catch (FernieException e) {
-                    ausgabe.upsert(knoten.getKnotenNummer(), e.getFernies());
+                    output.upsert(node.getNodeNumber(), e.getFernies());
                 } catch (MoveException e) {
-                    System.out.println("Knotennummer " + knoten.getKnotenNummer() + ": " + e.getMessage());
+                    System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
                 } finally {
                     i++;
                 }
             }
-        } else if (anzahlFreie > 0) {
+        } else if (numberFreeNodes > 0) {
             /*
-             * Falls es mehr verfügbare Fernies als unkontrollierte Knoten gibt, sollen die
-             * Fernies gleichmäßig auf alle freien Knoten verteilt werden.
+             * If there are more available fernies than uncontrolled nodes, the fernies should
+             * be distributed evenly among all free nodes.
              */
-            Iterator<Knoten> iterator = freie.iterator();
-            int ferniesProKnoten = ring.getFerniesVerfuegbar() / (anzahlFreie);
-            while (ring.getFerniesVerfuegbar() > 0 && iterator.hasNext()) {
-                knoten = iterator.next();
+            Iterator<Node> iterator = freeNodes.iterator();
+            int ferniesPerNode = ring.getAvailableFernies() / (numberFreeNodes);
+            while (ring.getAvailableFernies() > 0 && iterator.hasNext()) {
+                node = iterator.next();
                 try {
-                    ring.addFernies(knoten.getKnotenNummer(), ferniesProKnoten);
-                    ausgabe.upsert(knoten.getKnotenNummer(), ferniesProKnoten);
+                    ring.addFernies(node.getNodeNumber(), ferniesPerNode);
+                    output.upsert(node.getNodeNumber(), ferniesPerNode);
                 }  catch (FernieException e) {
-                    ausgabe.upsert(knoten.getKnotenNummer(), e.getFernies());
+                    output.upsert(node.getNodeNumber(), e.getFernies());
                 } catch (MoveException e) {
-                    System.out.println("Knotennummer " + knoten.getKnotenNummer() + ": " + e.getMessage());
+                    System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
                 } 
             }
         } 
-        verteileRest(ring, ausgabe); //Falls bei der Division ferniesProKnoten ein Rest übrig geblieben ist, wird dieser nun verteilt.
+        distributeUnused(ring, output); 
         
-        return ausgabe.getAusgabe(ring);
+        return output.getOutput(ring);
     }
     
     @Override

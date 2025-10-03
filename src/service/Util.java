@@ -6,7 +6,7 @@ import java.util.List;
 import model.*;
 
 public class Util {
-    public static Ring statusEinlesen(String agentenName, int step) throws UngueltigeStatusException {
+    public static Ring readStatusFile(String agentenName, int step) throws InvalidStatusException {
         String dateipfad = agentenName +"/" + step + ".txt";
         String[] input = new String[5];
         try (BufferedReader br = new BufferedReader(new FileReader(dateipfad))) {
@@ -33,7 +33,7 @@ public class Util {
         // 2. Prüfung: falls die Anzahl der Elemente in Zeilen 1 und 2 nicht
         // übereinstimmt, stimmt etwas nicht.
         if (zeile1String.length != zeile2.length) {
-            throw new UngueltigeStatusException(
+            throw new InvalidStatusException(
                     "Zeile 1 und Zeile 2 der Statusdatei enthalten eine ungleiche Anzahl an Knoten.");
         }
         int anzahlKnoten = zeile1String.length;
@@ -50,32 +50,32 @@ public class Util {
                 zeile1Int[i] = Integer.parseInt(zeile1String[i]);
             }
         } catch (NumberFormatException e) {
-            throw new UngueltigeStatusException(
+            throw new InvalidStatusException(
                     "An einer Stelle wo eine Fernieanzahl erwartet wurde, stand keine Zahl.");
         }
         // 4. Prüfung: falls die Knotenanzahl 0 ist, stimmt etwas nicht.
         if (anzahlKnoten == 0) {
-            throw new UngueltigeStatusException("Die Statusdatei enthält keine Knoten.");
+            throw new InvalidStatusException("Die Statusdatei enthält keine Knoten.");
         }
-        Knoten[] knotenListe = new Knoten[anzahlKnoten];
+        Node[] knotenListe = new Node[anzahlKnoten];
         for (int i = 0; i < anzahlKnoten; i++) {
             // 5. Prüfung: Falls der Sichtbarkeitsstatus in Zeile 1 und 2 nicht
             // übereinstimmen, stimmt etwas nicht.
             if ((zeile1Int[i] == -1 && !zeile2[i].equals("U")) || (zeile1Int[i] != -1 && zeile2[i].equals("U"))) {
-                throw new UngueltigeStatusException("Bei Knoten " + i
+                throw new InvalidStatusException("Bei Knoten " + i
                         + " stimmt der Sichtbarkeitsstatus aus Zeile 1 und 2 nicht überein. (Zeile 1 hat -1 und Zeile 2 hat nicht U oder umgekehrt.)");
             }
             //6. Prüfung: falls der Status nicht-kontrolliert ist und die Ferniezahl != 0 ist, stimmt etwas nicht.
             if ((zeile1Int[i] == 0 && !zeile2[i].equals("N")) || (zeile1Int[i] != 0 && zeile2[i].equals("N"))) {
-                throw new UngueltigeStatusException("Bei Knoten " + i
+                throw new InvalidStatusException("Bei Knoten " + i
                         + " stimmt der Unkontrolliertstatus aus Zeile 1 und 2 nicht überein. (Zeile 1 hat 0 und Zeile 2 hat nicht N oder umgekehrt.)");
             }
-            knotenListe[i] = new Knoten(i, zeile2[i], zeile1Int[i]);
+            knotenListe[i] = new Node(i, zeile2[i], zeile1Int[i]);
         }
         return new Ring(knotenListe, anzahlFerniesGesamt, anzahlFerniesVerfuegbar);
     }
 
-    public static void moveAusgeben(List<String> ausgabe, String agentenName) {
+    public static void writeMove(List<String> ausgabe, String agentenName) {
         File move = new File(agentenName, "move.txt");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(move))) {
             move.createNewFile();
@@ -97,7 +97,7 @@ public class Util {
         }
     }
 
-    public static void notizenAusgeben(String notizen, String agentenName) {
+    public static void writeNotes(String notizen, String agentenName) {
         File datei = new File(agentenName, "notizen.txt");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(datei))) {
             datei.createNewFile();
@@ -111,7 +111,7 @@ public class Util {
         }
     }
 
-    public static Notizen notizenEinlesen(String agentenName, Ring ring, int runde) {
+    public static Notes readNotes(String agentenName, Ring ring, int runde) {
         String dateipfad = agentenName  + "/notizen.txt";
         String[] input = new String[8];
         try (BufferedReader br = new BufferedReader(new FileReader(dateipfad))) {
@@ -122,19 +122,19 @@ public class Util {
             }
         }  catch (FileNotFoundException e) {
             System.out.println("Es gibt noch keine Notiz-Datei. Sie wird diese Runde neu erzeugt");
-            return new Notizen(runde, 2);
+            return new Notes(runde, 2);
         }  catch (IOException e) {
             System.out.println("Die Datei notizen.txt konnte nicht eingelesen werden. Es wird eine neue Datei erzeugt.");
-            return new Notizen(runde, 2); 
+            return new Notes(runde, 2); 
         }     
-        Notizen notizen;
+        Notes notizen;
         try {
             String zeile1 = input[0].split(": ")[1];
-            StrategieGegner strategie;
+            StrategyOpponent strategie;
             switch(zeile1) {
-            case "AGRESSIV": strategie = StrategieGegner.AGRESSIV;
-            case "DEFENSIV": strategie = StrategieGegner.DEFENSIV;
-            default: strategie = StrategieGegner.UNBEKANNT;
+            case "AGRESSIV": strategie = StrategyOpponent.AGRESSIVE;
+            case "DEFENSIV": strategie = StrategyOpponent.DEFENSIVE;
+            default: strategie = StrategyOpponent.UNKNOWN;
             }
             int angriffeGegnerGesamt =  Integer.parseInt(input[1].split(": ")[1]);
             int angriffeGegnerLetzteRunde =  Integer.parseInt(input[2].split(": ")[1]);
@@ -147,18 +147,18 @@ public class Util {
             double abgewehrteAngriffeGesamt = Double.parseDouble(input[6].split(": ")[1]);
             int summeAbgewehrt = 0;
             for (int knotenNummer : meineAngriffeLetzteRunde) {
-                if (ring.getKnotenMitNummer(knotenNummer).getBesitz() != Besitz.MEINS) {
+                if (ring.getNodeByNumber(knotenNummer).getOwner() != Ownership.MINE) {
                     summeAbgewehrt++;
                 }
             }
             double abgewehrteAngriffeLetzteRunde = (double) (summeAbgewehrt / meineAngriffeLetzteRunde.length);
             abgewehrteAngriffeGesamt = (abgewehrteAngriffeGesamt * (runde -1) + abgewehrteAngriffeLetzteRunde ) / runde;
             double puffer = Double.parseDouble(input[8].split(": ")[1]);
-            notizen = new Notizen(runde, strategie, angriffeGegnerGesamt, angriffeGegnerLetzteRunde, sichtbarkeit, 
+            notizen = new Notes(runde, strategie, angriffeGegnerGesamt, angriffeGegnerLetzteRunde, sichtbarkeit, 
                     abgewehrteAngriffeGesamt, abgewehrteAngriffeLetzteRunde, puffer);
         } catch (Exception e) {
             System.out.println("Eingelesene notizen.txt ist leer oder fehlerhaft.");
-            notizen = new Notizen(runde, 2);
+            notizen = new Notes(runde, 2);
         }
         
         return notizen;

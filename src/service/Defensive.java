@@ -4,15 +4,20 @@ import java.util.List;
 
 import model.*;
 
-public class Defensiv extends Strategy {
+public class Defensive extends Strategy {
 
-    public Defensiv(Notizen notizen) {
-        super(notizen);
+    public Defensive(Notes notes) {
+        super(notes);
     }
 
     @Override
     public List<String> move(Ring ring) {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    @Override
+    public String toString() {
+        return "Defensive";
     }
 }

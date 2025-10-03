@@ -7,32 +7,31 @@ import model.*;
 public class RINGwars_8878390_Koebke_Vanessa {
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("Bitte gültige Argumente angeben: <Step-Nummer> <Agentenname>. Das Programm beendet sich nun.");
+            System.out.println("Please enter valid arguments: <Step number> <Agent name>. The program terminates now.");
             return;
         }
-        int runde;
+        int round;
         try {
-            runde = Integer.parseInt(args[0]);
+            round = Integer.parseInt(args[0]);
         } catch (NumberFormatException e) {
-            System.out.println("Bitte gültige Step-Nummer übergeben. Das Programm beendet sich nun.");
+            System.out.println("Please enter a valid step number. The program terminates now.");
             return;
         }
-        String agentenName = args[1];
+        String agentName = args[1];
         Ring ring = null;
         try {
-            ring = Util.statusEinlesen(agentenName, runde);
-        } catch (UngueltigeStatusException e) {
+            ring = Util.readStatusFile(agentName, round);
+        } catch (InvalidStatusException e) {
             System.out.println(e.getMessage());
-            System.out.println("Es wird eine leere Move-Datei erzeugt.");
+            System.out.println("An empty move file will be created.");
         }
-        Notizen notizen = Util.notizenEinlesen(agentenName, ring, runde);
-        Strategy strategie = Strategy.getStrategy(ring, notizen);
-        System.out.println("Angewandte Strategie: " + strategie.toString());
-        List<String> ausgabe = strategie.move(ring);
+        Notes notes = Util.readNotes(agentName, ring, round);
+        Strategy strategy = Strategy.getStrategy(ring, notes);
+        System.out.println("Executed strategy: " + strategy.toString());
+        List<String> output = strategy.move(ring);
         
-        Util.moveAusgeben(ausgabe, agentenName);
-        Util.notizenAusgeben(notizen.toString(), agentenName);
-        System.out.println("Das Programm ist erfolgreich zu Ende gelaufen.");
-        System.out.println(ausgabe);
+        Util.writeMove(output, agentName);
+        Util.writeNotes(notes.toString(), agentName);
+        System.out.println("The program terminated successfully.");
     }
 }
