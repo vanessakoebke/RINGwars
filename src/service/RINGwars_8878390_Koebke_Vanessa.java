@@ -20,7 +20,7 @@ public class RINGwars_8878390_Koebke_Vanessa {
         String agentenName = args[1];
         Ring ring = null;
         try {
-            ring = Util.statusEinlesen(runde);
+            ring = Util.statusEinlesen(agentenName, runde);
         } catch (UngueltigeStatusException e) {
             System.out.println(e.getMessage());
             System.out.println("Es wird eine leere Move-Datei erzeugt.");

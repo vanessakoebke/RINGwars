@@ -31,7 +31,18 @@ public class Ausgabe {
 
     public void upsert(int knotenNummer, int fernieZahl) {
         for (Zeile zeile : ausgabeListe) {
-            if (zeile.knotenNummer == knotenNummer) {
+            if (zeile.knotenNummer == knotenNummer&& zeile.fernieZahl>=0) {
+                zeile.fernieZahl += fernieZahl;
+                return;
+            }
+        }
+        ausgabeListe.add(new Zeile(knotenNummer, fernieZahl));
+    }
+    
+    public void remove(int knotenNummer, int fernieZahl) {
+        fernieZahl = -fernieZahl;
+        for (Zeile zeile : ausgabeListe) {
+            if (zeile.knotenNummer == knotenNummer && zeile.fernieZahl<0) {
                 zeile.fernieZahl += fernieZahl;
                 return;
             }

@@ -1,14 +1,13 @@
 package service;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 import model.*;
 
 public class Util {
-    public static Ring statusEinlesen(int step) throws UngueltigeStatusException {
-        String dateipfad = "inputoutput/" + step + ".txt";
+    public static Ring statusEinlesen(String agentenName, int step) throws UngueltigeStatusException {
+        String dateipfad = agentenName +"/" + step + ".txt";
         String[] input = new String[5];
         try (BufferedReader br = new BufferedReader(new FileReader(dateipfad))) {
             int i = 0;
@@ -114,7 +113,7 @@ public class Util {
 
     public static Notizen notizenEinlesen(String agentenName, Ring ring, int runde) {
         String dateipfad = agentenName  + "/notizen.txt";
-        String[] input = new String[7];
+        String[] input = new String[8];
         try (BufferedReader br = new BufferedReader(new FileReader(dateipfad))) {
             int i = 0;
             String zeile;

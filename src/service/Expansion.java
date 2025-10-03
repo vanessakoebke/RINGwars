@@ -13,6 +13,7 @@ public class Expansion extends Strategy {
     public List<String> move(Ring ring) {
         
         Ausgabe ausgabe = new Ausgabe(ring.getMaxFerniesRunde());
+        entferneUeberfluessige(ring, ausgabe);
         List<Knoten> freie = ring.getKnoten(Besitz.UNKONTROLLIERT);
         Knoten knoten = null;
         int anzahlFreie = freie.size();

@@ -19,19 +19,22 @@ public abstract class Strategy {
     public static Strategy getStrategy(Ring ring, Notizen notizen) {
         if (ring == null) {
             return new LeereMove(notizen);
-        } else if (!ring.isGegnerSichtbar()) {
+        } else if (!ring.isGegnerSichtbar() || (ring.isGegnerSichtbar() && notizen.getStrategieGegner() != StrategieGegner.AGRESSIV)) {
             return new Expansion(notizen);
         } else if (ring.getDurchschnittFernieProKnoten(Besitz.SEINS) > ring.getDurchschnittFernieProKnoten(Besitz.MEINS)
                 * 2) {
             return new Konsolidierung(notizen);
-        } else if ((ring.getSichtbarkeitAnteil() >= 0.9)
-                && (ring.getFernies(Besitz.MEINS) > ring.getFernies(Besitz.SEINS))) {
+        } else if ((ring.getFernies(Besitz.MEINS) > ring.getFernies(Besitz.SEINS))) {
             return new Angriff(notizen);
-        } else if (ring.getFernies(Besitz.MEINS) < ring.getFernies(Besitz.SEINS)) {
-            return new Defensiv(notizen);
+//        } else if (ring.getFernies(Besitz.MEINS) < ring.getFernies(Besitz.SEINS)) {
+//            return new Defensiv(notizen);
         } else {
             return new FallBack(notizen); // TODO prüfen
         }
+    }
+    
+    public static StrategieGegner getGegnerischeStrategie() {
+        return StrategieGegner.UNBEKANNT;
     }
 
     public void verteileRest(Ring ring, Ausgabe ausgabe) {
@@ -96,5 +99,18 @@ public abstract class Strategy {
 //                aktuelleKnoten.removeFirst();
 //            }
 //        }
+    }
+    public void entferneUeberfluessige(Ring ring, Ausgabe ausgabe) {
+        for (Knoten k: ring.getKnoten(Besitz.MEINS)) {
+            try {
+                if (ring.getKnotenMitNummer(k.getKnotenNummer()).getFernieAnzahl() > 1) {
+                    int temp = ring.getKnotenMitNummer(k.getKnotenNummer()).getFernieAnzahl() - 1;
+                    ring.removeFernies(k.getKnotenNummer(), temp);
+                    ausgabe.remove(k.getKnotenNummer(), temp);
+                }
+            } catch (MoveException e) {
+                continue;
+            } 
+        }
     }
 }

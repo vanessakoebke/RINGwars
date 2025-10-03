@@ -1,6 +1,6 @@
 package model;
 
-public class FernieException extends Exception {
+public class FernieException extends MoveException {
     private int tatsächlicheFernies;
     
     public FernieException(int tatsächlicheFernies) {
