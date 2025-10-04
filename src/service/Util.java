@@ -5,162 +5,260 @@ import java.util.List;
 
 import model.*;
 
+/**
+ * Utility class with static methods for reading and writing files.
+ */
 public class Util {
-    public static Ring readStatusFile(String agentenName, int step) throws InvalidStatusException {
-        String dateipfad = agentenName +"/" + step + ".txt";
+    /**
+     * Reads the current step file.
+     * 
+     * @param agentName name of the agent (directory)
+     * @param step      step number
+     * @return ring
+     * @throws InvalidStatusException if the step file is invalid
+     */
+    public static Ring readStatusFile(String agentName, int step) throws InvalidStatusException {
+        String path = agentName + "/" + step + ".txt";
         String[] input = new String[5];
-        try (BufferedReader br = new BufferedReader(new FileReader(dateipfad))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             int i = 0;
-            String zeile;
-            while ((zeile = br.readLine()) != null) {
-                input[i++] = zeile;
+            String line;
+            while ((line = br.readLine()) != null) {
+                input[i++] = line;
             }
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println("The step file was not found. An empty move file will be created.");
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println("The step file could not be read. An empty move file will be created.");
         }
-        // 1. Prüfung: falls die Statusdatei mehr als 4 Zeilen hat, stimmt etwas nicht,
-        // aber Programm setzt sich fort (siehe Moodle-Antwort von Frau Frank).
+        /*
+         * 1st check: if the step file has more than 4 lines, a message is displayed,
+         * however, if the first 4 lines are correct, the program proceeds (see Moodle
+         * answer by Andrea Frank).
+         */
         if (input[4] != null) {
             System.out.println(
-                    "Statusdatei hat mehr als 4 Zeilen! Das Programm setzt sich fort, falls die ersten 4 Zeilen gültig sind.");
+                    "Step file has more than 4 lines. The programm continues, and tries to parse the first 4 lines.");
         }
-        String[] zeile1String = input[0].split(",");
-        String[] zeile2 = input[1].split(",");
-        // 2. Prüfung: falls die Anzahl der Elemente in Zeilen 1 und 2 nicht
-        // übereinstimmt, stimmt etwas nicht.
-        if (zeile1String.length != zeile2.length) {
-            throw new InvalidStatusException(
-                    "Zeile 1 und Zeile 2 der Statusdatei enthalten eine ungleiche Anzahl an Knoten.");
+        String[] line1String = input[0].split(",");
+        String[] line2 = input[1].split(",");
+        /*
+         * 2nd check: if the number of elements in the first and the second line are
+         * different, something is wrong.
+         */
+        if (line1String.length != line2.length) {
+            throw new InvalidStatusException("Line 1 and 2 have a different number of elements.");
         }
-        int anzahlKnoten = zeile1String.length;
-        int[] zeile1Int = new int[anzahlKnoten];
-        int anzahlFerniesVerfuegbar;
-        int anzahlFerniesGesamt;
-        // 3. Prüfung: falls es beim Umwandeln der Elemente der 1., 3. oder 4. Zeile
-        // eine NumberformatException gibt, stand bei einer Ferniezahlangabe keine
-        // Zahlen, d.h. die Statusdatei war fehlerhaft.
+        int numberNodes = line1String.length;
+        int[] line1Int = new int[numberNodes];
+        int availableFernies;
+        int maxFerniesPerNode;
+        /*
+         * 3rd check: if parsing the elements in line 1, 3 or 4 causes a
+         * NumberFormatException something is wrong.
+         */
         try {
-            anzahlFerniesVerfuegbar = Integer.parseInt(input[2]);
-            anzahlFerniesGesamt = Integer.parseInt(input[3]);
-            for (int i = 0; i < anzahlKnoten; i++) {
-                zeile1Int[i] = Integer.parseInt(zeile1String[i]);
+            availableFernies = Integer.parseInt(input[2]);
+            maxFerniesPerNode = Integer.parseInt(input[3]);
+            for (int i = 0; i < numberNodes; i++) {
+                line1Int[i] = Integer.parseInt(line1String[i]);
             }
         } catch (NumberFormatException e) {
-            throw new InvalidStatusException(
-                    "An einer Stelle wo eine Fernieanzahl erwartet wurde, stand keine Zahl.");
+            throw new InvalidStatusException("Number parsing for amount of fernies in line 1, 3 or 4 failed.");
         }
-        // 4. Prüfung: falls die Knotenanzahl 0 ist, stimmt etwas nicht.
-        if (anzahlKnoten == 0) {
-            throw new InvalidStatusException("Die Statusdatei enthält keine Knoten.");
+        // 4th check: if the node count is 0, something is wrong.
+        if (numberNodes == 0) {
+            throw new InvalidStatusException("There are no nodes in the step file.");
         }
-        Node[] knotenListe = new Node[anzahlKnoten];
-        for (int i = 0; i < anzahlKnoten; i++) {
-            // 5. Prüfung: Falls der Sichtbarkeitsstatus in Zeile 1 und 2 nicht
-            // übereinstimmen, stimmt etwas nicht.
-            if ((zeile1Int[i] == -1 && !zeile2[i].equals("U")) || (zeile1Int[i] != -1 && zeile2[i].equals("U"))) {
-                throw new InvalidStatusException("Bei Knoten " + i
-                        + " stimmt der Sichtbarkeitsstatus aus Zeile 1 und 2 nicht überein. (Zeile 1 hat -1 und Zeile 2 hat nicht U oder umgekehrt.)");
+        Node[] nodeList = new Node[numberNodes];
+        for (int i = 0; i < numberNodes; i++) {
+            /*
+             * 5th check: If the visibility status in line 1 and 2 don't match, something is
+             * wrong.
+             */
+            if ((line1Int[i] == -1 && !line2[i].equals("U")) || (line1Int[i] != -1 && line2[i].equals("U"))) {
+                throw new InvalidStatusException("For node " + i
+                        + " the visibility status in line 1 and 2 don't match. (Line 1 has -1 and line 2 doesn't have U or the other way around.)");
             }
-            //6. Prüfung: falls der Status nicht-kontrolliert ist und die Ferniezahl != 0 ist, stimmt etwas nicht.
-            if ((zeile1Int[i] == 0 && !zeile2[i].equals("N")) || (zeile1Int[i] != 0 && zeile2[i].equals("N"))) {
-                throw new InvalidStatusException("Bei Knoten " + i
-                        + " stimmt der Unkontrolliertstatus aus Zeile 1 und 2 nicht überein. (Zeile 1 hat 0 und Zeile 2 hat nicht N oder umgekehrt.)");
+            // 6th check: if a node status is uncontrolled and the fernie count is != 0,
+            // something is wrong.
+            if ((line1Int[i] == 0 && !line2[i].equals("N")) || (line1Int[i] != 0 && line2[i].equals("N"))) {
+                throw new InvalidStatusException("For node " + i
+                        + " the uncontrolled status of line 1 and 2 don't match. (Line 1 has 0 and line doesn't have N, or the other way around.)");
             }
-            knotenListe[i] = new Node(i, zeile2[i], zeile1Int[i]);
+            nodeList[i] = new Node(i, line2[i], line1Int[i]);
         }
-        return new Ring(knotenListe, anzahlFerniesGesamt, anzahlFerniesVerfuegbar);
+        return new Ring(nodeList, maxFerniesPerNode, availableFernies);
     }
 
-    public static void writeMove(List<String> ausgabe, String agentenName) {
-        File move = new File(agentenName, "move.txt");
+    /**
+     * Writes the move file into the agent's directory.
+     * 
+     * @param output    output String list
+     * @param agentName agent name (name of directory)
+     */
+    public static void writeMove(List<String> output, String agentName) {
+        File move = new File(agentName, "move.txt");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(move))) {
             move.createNewFile();
-            if (ausgabe != null && !ausgabe.isEmpty()) {
-                bw.write(ausgabe.get(0)); // damit die Move-Datei nicht mit einer leeren Zeile endet, habe ich die erste
-                                          // Zeile aus der for-Schleife rausgezogen und beginne die for-Schleife mit
-                                          // einer Leerzeile.
-                if (ausgabe.size() > 1) {
-                    for (int i = 1; i < ausgabe.size(); i++) {
+            /*
+             * in order for the move file not to end with an empty line, I have extracted
+             * the first line from the for loop. The loop then starts with a line break.
+             */
+            if (output != null && !output.isEmpty()) {
+                bw.write(output.get(0));
+                if (output.size() > 1) {
+                    for (int i = 1; i < output.size(); i++) {
                         bw.newLine();
-                        bw.write(ausgabe.get(i));
+                        bw.write(output.get(i));
                     }
                 }
             }
         } catch (IOException e) {
-            System.out.println(
-                    "Es konnte keine move.txt erstellt werden (siehe StackTrace). Das Programm beendet sich nun.");
+            System.out.println("The move file could not be created (see StackTrace). The program terminates now.");
             e.printStackTrace();
+            System.exit(0);
         }
     }
 
-    public static void writeNotes(String notizen, String agentenName) {
-        File datei = new File(agentenName, "notizen.txt");
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(datei))) {
-            datei.createNewFile();
-            if (notizen != null) {
-                bw.write(notizen);
+    /**
+     * Writes the notes created in the current round by the agent into the notes
+     * file in the agent's directory.
+     * 
+     * @param notes     notes
+     * @param agentName agent name (name of the directory)
+     */
+    public static void writeNotes(String notes, String agentName) {
+        File file = new File(agentName, "notes.txt");
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+            file.createNewFile();
+            if (notes != null) {
+                bw.write(notes);
             }
         } catch (IOException e) {
-            System.out.println(
-                    "Es konnte keine notizen.txt erstellt werden (siehe StackTrace). Das Programm beendet sich nun.");
+            System.out.println("The move file could not be created (see StackTrace). The program terminates now.");
             e.printStackTrace();
         }
     }
 
-    public static Notes readNotes(String agentenName, Ring ring, int runde) {
-        String dateipfad = agentenName  + "/notizen.txt";
+    /**
+     * Reads the notes from the previous round stored in the notes file.
+     * 
+     * @param agentName agent name (name of the directory)
+     * @param ring      ring
+     * @param round     current round
+     * @return Notes object
+     */
+    public static Notes readNotes(String agentName, Ring ring, int round) {
+        /*
+         * If the notes file cannot be found, read or parsed, I will calculate the
+         * visibility based on the current step file, by subtracting the node number of
+         * my outermost node before an invisible node from the first invisible name.
+         */
+        int visibilityCalculated = 0;
+        if (ring != null) {
+            try {
+                Node lastNode = null;
+                for (Node node : ring.getNodes()) {
+                    if (node.getOwner() == Ownership.MINE) {
+                        lastNode = node;
+                    }
+                    if (node.getOwner() == Ownership.UNKNOWN) {
+                        visibilityCalculated = node.getNodeNumber() - lastNode.getNodeNumber();
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Hilfe, beim ermitteln der Sichtbarkeit ist was schief gelaufen.");
+                e.printStackTrace();
+            }
+        }
+        String path = agentName + "/notes.txt";
         String[] input = new String[8];
-        try (BufferedReader br = new BufferedReader(new FileReader(dateipfad))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             int i = 0;
-            String zeile;
-            while ((zeile = br.readLine()) != null) {
-                input[i++] = zeile;
+            String line;
+            while ((line = br.readLine()) != null) {
+                input[i++] = line;
             }
-        }  catch (FileNotFoundException e) {
-            System.out.println("Es gibt noch keine Notiz-Datei. Sie wird diese Runde neu erzeugt");
-            return new Notes(runde, 2);
-        }  catch (IOException e) {
-            System.out.println("Die Datei notizen.txt konnte nicht eingelesen werden. Es wird eine neue Datei erzeugt.");
-            return new Notes(runde, 2); 
-        }     
-        Notes notizen;
+        } catch (FileNotFoundException e) {
+            System.out.println("There is no notes file. It will be created this round.");
+            return new Notes(round, visibilityCalculated);
+        } catch (IOException e) {
+            System.out.println("The notes file could not be read. It will be created this round.");
+            return new Notes(round, visibilityCalculated);
+        }
+        /*
+         * If the notes file can be read, I will try to parse the visibility range saved in the notes file, since it might be more
+         * accurate than the calculated one (i.e. if the whole ring is visible, the calculation above won't work properly).
+         */
+        Notes notes;
+        int visibility = 0;
+        /*
+         * To parse my notes file I always use the code input[i].split(": ")[1]. This splits the line at the end of the descriptor (": "),
+         * and I will only need the part after the descriptor ([1]).
+         */
         try {
-            String zeile1 = input[0].split(": ")[1];
+            String line1 = input[0].split(": ")[1];
+            //TODO Strategie des Gegners besser verarbeiten
             StrategyOpponent strategie;
-            switch(zeile1) {
-            case "AGRESSIV": strategie = StrategyOpponent.AGRESSIVE;
-            case "DEFENSIV": strategie = StrategyOpponent.DEFENSIVE;
-            default: strategie = StrategyOpponent.UNKNOWN;
+            switch (line1) {
+            case "AGRESSIVE":
+                strategie = StrategyOpponent.AGRESSIVE;
+            case "DEFENSIVE":
+                strategie = StrategyOpponent.DEFENSIVE;
+            default:
+                strategie = StrategyOpponent.UNKNOWN;
             }
-            int angriffeGegnerGesamt =  Integer.parseInt(input[1].split(": ")[1]);
-            int angriffeGegnerLetzteRunde =  Integer.parseInt(input[2].split(": ")[1]);
-            int sichtbarkeit =  Integer.parseInt(input[3].split(": ")[1]);
-            String[] zeile5String = input[4].split(": ")[1].split(",");
-            int[] meineAngriffeLetzteRunde = new int[zeile5String.length];
-            for (int i = 0; i< zeile5String.length; i++) {
-                meineAngriffeLetzteRunde[i] = Integer.parseInt(zeile5String[i]);
+            //TODO besser parsen
+            int attacksByOpponentTotal = Integer.parseInt(input[1].split(": ")[1]);
+            int attacksByOpponentLastRound = Integer.parseInt(input[2].split(": ")[1]);
+            //The visibility range can be read from line 4.
+            visibility = Integer.parseInt(input[3].split(": ")[1]);
+            
+            /*
+             * The attacks the agent has carried out last round can be read from line 5.
+             * After parsing them into an int array, I will check whether an attacked node has become mine.
+             * If not, it increments the counter of blocked attacks. This will be important for determining a 
+             * possible defensive strategy by the opponent and the attack buffer for the current round.
+             */
+            String[] line5String = input[4].split(": ")[1].split(",");
+            int[] myAttacksLastRound = new int[line5String.length];
+            for (int i = 0; i < line5String.length; i++) {
+                myAttacksLastRound[i] = Integer.parseInt(line5String[i]);
             }
-            double abgewehrteAngriffeGesamt = Double.parseDouble(input[6].split(": ")[1]);
-            int summeAbgewehrt = 0;
-            for (int knotenNummer : meineAngriffeLetzteRunde) {
-                if (ring.getNodeByNumber(knotenNummer).getOwner() != Ownership.MINE) {
-                    summeAbgewehrt++;
+            int sumBlockedAttacksLastRound = 0;
+            for (int nodeNumber : myAttacksLastRound) {
+                if (ring.getNodeByNumber(nodeNumber).getOwner() != Ownership.MINE) {
+                    sumBlockedAttacksLastRound++;
                 }
             }
-            double abgewehrteAngriffeLetzteRunde = (double) (summeAbgewehrt / meineAngriffeLetzteRunde.length);
-            abgewehrteAngriffeGesamt = (abgewehrteAngriffeGesamt * (runde -1) + abgewehrteAngriffeLetzteRunde ) / runde;
+            double blockedAttacksLastRound = (double) (sumBlockedAttacksLastRound / myAttacksLastRound.length);
+            double blockedAttacksTotal = ((Double.parseDouble(input[6].split(": ")[1]) * round -1) + (blockedAttacksLastRound)) /round ;
+            
+            /*
+             * Reads last rounds attack buffer from the file. If more than 30% of last rounds attacks were blocked,
+             * the attack buffer will be incremented by 10% points.
+             */
             double puffer = Double.parseDouble(input[8].split(": ")[1]);
-            notizen = new Notes(runde, strategie, angriffeGegnerGesamt, angriffeGegnerLetzteRunde, sichtbarkeit, 
-                    abgewehrteAngriffeGesamt, abgewehrteAngriffeLetzteRunde, puffer);
+            if (blockedAttacksLastRound > 0.3) {
+                puffer += 0.1;
+            }
+            
+            //If parsing has concluded successfully, the information will be stored in the notes object.
+            notes = new Notes(round, strategie, attacksByOpponentTotal, attacksByOpponentLastRound, visibility,
+                    blockedAttacksTotal, blockedAttacksLastRound, puffer);
         } catch (Exception e) {
-            System.out.println("Eingelesene notizen.txt ist leer oder fehlerhaft.");
-            notizen = new Notes(runde, 2);
+            System.out.println("The notes file is empty or invalid.");
+            e.printStackTrace();
+            /*
+             * If parsing the visibility range from the notes file failed, I will use the calculated visibility from above.
+             */
+            if (visibility == 0) {
+                visibility = visibilityCalculated;
+            }
+            notes = new Notes(round, visibility);
         }
-        
-        return notizen;
+        return notes;
     }
 }

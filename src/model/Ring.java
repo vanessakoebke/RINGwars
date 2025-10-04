@@ -115,6 +115,15 @@ public class Ring {
     }
 
     /**
+     * Returns the complete node list.
+
+     * @return node list
+     */
+    public Node[] getNodes() {
+        return nodeList;
+    }
+    
+    /**
      * Returns a list of nodes by a given owner.
      * 
      * @param owner the owner for which the node list should be created
