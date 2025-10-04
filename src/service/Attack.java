@@ -4,10 +4,12 @@ import java.util.List;
 
 import model.*;
 
-public class Attack extends Strategy {
+public abstract class Attack extends Strategy {
+    boolean attackMax;
     
-    public Attack(Notes notes) {
+    public Attack(Notes notes, boolean attackMax) {
         super(notes);
+        this.attackMax = attackMax;
     }
 
     @Override
@@ -36,19 +38,21 @@ public class Attack extends Strategy {
 
     private void localBattle(Ring ring, Output output) {
         List<Node> theirs = ring.getNodes(Ownership.THEIRS);
+        Node selected = null;
         while (!theirs.isEmpty()
-                && ferniesForThisStrategy > ring.getMinNode(theirs).getFernieCount() * notes.getAttackBuffer()) {
-            Node nodeOpponent = ring.getMinNode(Ownership.THEIRS);
-            int ferniesAttack = (int) (nodeOpponent.getFernieCount() * notes.getAttackBuffer() + 1);
+                && ferniesForThisStrategy > selected.getFernieCount() * notes.getAttackBuffer()) {
+            selected = selectNode(ring, theirs);
+            int ferniesAttack = (int) (selected.getFernieCount() * notes.getAttackBuffer() + 1);
             try {
-                ring.attack(nodeOpponent.getNodeNumber(), ferniesAttack);
+                ring.attack(selected.getNodeNumber(), ferniesAttack);
                 ferniesForThisStrategy -= ferniesAttack;
-                output.upsert(nodeOpponent.getNodeNumber(), ferniesAttack);
+                output.upsert(selected.getNodeNumber(), ferniesAttack);
+                notes.addAttack(selected.getNodeNumber());
             } catch (FernieException e) {
-                output.upsert(nodeOpponent.getNodeNumber(), e.getFernies());
+                output.upsert(selected.getNodeNumber(), e.getFernies());
+                notes.addAttack(selected.getNodeNumber());
             } catch (MoveException e) {
-                System.out.println("Node number  " + nodeOpponent.getNodeNumber() + ": " + e.getMessage());
-                break;
+                System.out.println("Node number  " + selected.getNodeNumber() + ": " + e.getMessage());
             }
         }
     }
@@ -61,20 +65,22 @@ public class Attack extends Strategy {
          * 2 free neighbors on each side, to avoid unintended edge battles.
          */
         List<Node> listFree4 = ring.getNodesFreeNeighbors(2, 2);
+        Node selected = null;
         while (!listFree4.isEmpty()
-                && ferniesForThisStrategy> ring.getMinNode(listFree4).getFernieCount() * notes.getAttackBuffer()) {
-            Node nodeOpponent = ring.getMinNode(listFree4);
-            int ferniesAttack = (int) (nodeOpponent.getFernieCount() * notes.getAttackBuffer() + 2);
+                && ferniesForThisStrategy> selected.getFernieCount() * notes.getAttackBuffer()) {
+            selected = selectNode(ring, listFree4);
+            int ferniesAttack = (int) (selected.getFernieCount() * notes.getAttackBuffer() + 2);
             try {
-                ring.addFernies(nodeOpponent.getNodeNumber() + 1, ferniesAttack / 2);
-                ring.addFernies(nodeOpponent.getNodeNumber() - 1, ferniesAttack / 2);
+                ring.addFernies(selected.getNodeNumber() + 1, ferniesAttack / 2);
+                ring.addFernies(selected.getNodeNumber() - 1, ferniesAttack / 2);
                 ferniesForThisStrategy -= ferniesAttack;
-                output.upsert(nodeOpponent.getNodeNumber() + 1, ferniesAttack / 2);
-                output.upsert(nodeOpponent.getNodeNumber() - 1, ferniesAttack / 2);
+                output.upsert(selected.getNodeNumber() + 1, ferniesAttack / 2);
+                output.upsert(selected.getNodeNumber() - 1, ferniesAttack / 2);
+                notes.addAttack(selected.getNodeNumber());
             } catch (MoveException e) {
-                System.out.println("Node Number " + nodeOpponent.getNodeNumber() + ": " + e.getMessage());
+                System.out.println("Node Number " + selected.getNodeNumber() + ": " + e.getMessage());
             } finally {
-                listFree4.remove(nodeOpponent);
+                listFree4.remove(selected);
             }
         }
         /*
@@ -86,29 +92,40 @@ public class Attack extends Strategy {
         List<Node> listFree2 = ring.getNodesFreeNeighbors(2);
         while (!listFree2.isEmpty()
                 && ferniesForThisStrategy > ring.getMinNode(listFree2).getFernieCount() * notes.getAttackBuffer()) {
-            Node nodeOpponent = ring.getMinNode(listFree2);
-            int ferniesAngriff = (int) (nodeOpponent.getFernieCount() * notes.getAttackBuffer() + 1);
+            selected = selectNode(ring, listFree2);
+            int ferniesAngriff = (int) (selected.getFernieCount() * notes.getAttackBuffer() + 1);
             try {
-                boolean freeFowards = ring.getNodeByNumber(nodeOpponent.getNodeNumber() + 1)
+                boolean freeFowards = ring.getNodeByNumber(selected.getNodeNumber() + 1)
                         .getOwner() == Ownership.UNCONTROLLED
-                        && ring.getNodeByNumber(nodeOpponent.getNodeNumber() + 1).getOwner() == Ownership.UNCONTROLLED;
+                        && ring.getNodeByNumber(selected.getNodeNumber() + 1).getOwner() == Ownership.UNCONTROLLED;
                 if (freeFowards) {
-                    ring.addFernies(nodeOpponent.getNodeNumber() + 1, ferniesAngriff);
+                    ring.addFernies(selected.getNodeNumber() + 1, ferniesAngriff);
                     ferniesForThisStrategy -= ferniesAngriff;
-                    output.upsert(nodeOpponent.getNodeNumber() + 1, ferniesAngriff);
+                    output.upsert(selected.getNodeNumber() + 1, ferniesAngriff);
+                    notes.addAttack(selected.getNodeNumber());
                 } else {
-                    ring.addFernies(nodeOpponent.getNodeNumber() - 1, ferniesAngriff);
+                    ring.addFernies(selected.getNodeNumber() - 1, ferniesAngriff);
                     ferniesForThisStrategy -= ferniesAngriff;
-                    output.upsert(nodeOpponent.getNodeNumber() - 1, ferniesAngriff);
+                    output.upsert(selected.getNodeNumber() - 1, ferniesAngriff);
+                    notes.addAttack(selected.getNodeNumber());
                 }
             } catch (FernieException e) {
-                output.upsert(nodeOpponent.getNodeNumber(), e.getFernies());
+                output.upsert(selected.getNodeNumber(), e.getFernies());
                 ferniesForThisStrategy -= e.getFernies();
+                notes.addAttack(selected.getNodeNumber());
             } catch (MoveException e) {
-                System.out.println("Node number " + nodeOpponent.getNodeNumber() + ": " + e.getMessage());
+                System.out.println("Node number " + selected.getNodeNumber() + ": " + e.getMessage());
             } finally {
-                listFree2.remove(nodeOpponent);        
+                listFree2.remove(selected);        
             }
+        }
+    }
+    
+    Node selectNode(Ring ring, List<Node> nodes) {
+        if (attackMax) {
+            return ring.getMaxNode(nodes);
+        } else {
+            return ring.getMinNode(nodes);
         }
     }
 

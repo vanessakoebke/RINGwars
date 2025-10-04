@@ -26,7 +26,7 @@ public class RINGwars_8878390_Koebke_Vanessa {
             System.out.println("An empty move file will be created.");
         }
         Notes notes = Util.readNotes(agentName, ring, round);
-        Strategy strategy = Strategy.getStrategy(ring, notes);
+        Strategy strategy = DrSmartyPants.getStrategy();
         System.out.println("Executed strategy: " + strategy.toString());
         Output output = strategy.move(ring);
         

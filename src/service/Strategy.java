@@ -26,34 +26,7 @@ public abstract class Strategy {
      * @return output 
      */
     public abstract Output move(Ring ring);
-    
 
-    /**
-     * Static method that returns a strategy based on the state of the ring and the notes.
-     * @param ring  ring
-     * @param notes notes
-     * @return selected strategy
-     */
-    public static Strategy getStrategy(Ring ring, Notes notes) {
-        if (ring == null) {
-            return new EmptyMove(notes);
-        } else if (!ring.isOpponentVisible() || (ring.isOpponentVisible() && notes.getOpponentStrategy() != StrategyOpponent.AGRESSIVE)) {
-            notes.setRatios(1, 0, 0, 0);
-            return new Expansion(notes);
-        } else if (ring.getAverageFerniesPerNode(Ownership.THEIRS) > ring.getAverageFerniesPerNode(Ownership.MINE) * 2
-                || notes.getOpponentStrategy() == StrategyOpponent.AGRESSIVE) {
-            notes.setRatios(0, 1, 0, 0);
-            return new Consolidation(notes);
-        } else if ((ring.getFernies(Ownership.MINE) > ring.getFernies(Ownership.THEIRS))) {
-            notes.setRatios(0, 0, 1, 0);
-            return new Attack(notes);
-//        } else if (ring.getFernies(Besitz.MEINS) < ring.getFernies(Besitz.SEINS)) {
-//            return new Defensiv(notizen);
-        } else {
-            notes.setRatios(0, 0, 0, 0);
-            return new FallBack(notes); 
-        }
-    }
     
     /**
      * Returns the opponent's strategy based on information from previous rounds if available.

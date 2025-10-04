@@ -332,6 +332,16 @@ public class Ring {
         }
         return maximum;
     }
+    
+    public Node getMaxNode(List<Node> list) {
+        Node maximum = list.getFirst();
+        for (Node node : list) {
+            if (node.getFernieCount() > maximum.getFernieCount()) {
+                maximum = node;
+            }
+        }
+        return maximum;
+    }
 
     public double getAverageFerniesPerNode(Ownership owner) {
         return getFernies(owner) / getNodes(owner).size();
