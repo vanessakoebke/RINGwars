@@ -10,7 +10,19 @@ public class Consolidation extends Strategy {
     }
 
     @Override
-    public List<String> move(Ring ring) {
+    public Output move(Ring ring){
+        Output output = new Output(ring.getMaxFerniesThisRound());
+        removeUnnecessary(ring, output);
+       output = move(ring, output, 1);
+       distributeUnused(ring, output);
+       return output;
+    }
+    
+    public Output move(Ring ring, Output output, double ratio) {
+        if (ratio == 0) {
+            return output;
+        }
+        ferniesForThisStrategy = (int) (ring.getAvailableFernies() * ratio);
         /*
          * Here a list is created of nodes that are visible to the opponent and lie on my 
          * side of the ring, compared to the opponent's outermost nodes.  
@@ -44,17 +56,17 @@ public class Consolidation extends Strategy {
          * If there are more opponent-visible nodes than available fernies, 
          * the nodes closest to the opponent should be filled first.
          */
-        Output output = new Output(ring.getMaxFerniesThisRound());
-        removeUnnecessary(ring, output);
         Node node = null;
-        if (ring.getAvailableFernies() < visibleForOpponent.size()) {
-            while (ring.getAvailableFernies() > 0 && !visibleForOpponent.isEmpty()) {
+        if (ferniesForThisStrategy < visibleForOpponent.size()) {
+            while (ferniesForThisStrategy > 0 && !visibleForOpponent.isEmpty()) {
                 try {
                     node = visibleForOpponent.getFirst();
                     visibleForOpponent.removeFirst();
                     ring.addFernies(node.getNodeNumber(), 1);
+                    ferniesForThisStrategy -= 1;
                     output.upsert(node.getNodeNumber(), 1);
                 } catch (FernieException e) {
+                    ferniesForThisStrategy -= 1;
                     output.upsert(node.getNodeNumber(), e.getFernies());
                 } catch (MoveException e) {
                     System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
@@ -66,21 +78,22 @@ public class Consolidation extends Strategy {
              * be distributed evenly among all nodes.
              */
             Iterator<Node> iterator = visibleForOpponent.iterator();
-            int ferniesPerNode = ring.getAvailableFernies() / (visibleForOpponent.size());
-            while (ring.getAvailableFernies() > 0 && iterator.hasNext()) {
+            int ferniesPerNode = ferniesForThisStrategy / (visibleForOpponent.size());
+            while (ferniesForThisStrategy > 0 && iterator.hasNext()) {
                 node = iterator.next();
                 try {
                     ring.addFernies(node.getNodeNumber(), ferniesPerNode);
+                    ferniesForThisStrategy -= ferniesPerNode;
                     output.upsert(node.getNodeNumber(), ferniesPerNode);
                 }  catch (FernieException e) {
+                    ferniesForThisStrategy -= e.getFernies();
                     output.upsert(node.getNodeNumber(), e.getFernies());
                 } catch (MoveException e) {
                     System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
                 } 
             }
         }
-        distributeUnused(ring, output);
-        return output.getOutput(ring);
+        return output;
     }
     
     @Override

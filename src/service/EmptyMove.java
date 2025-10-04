@@ -14,11 +14,11 @@ public class EmptyMove extends Strategy {
     }
 
     /**
-     * Returns null.
+     * Returns null due to invalid step file.
      * @return null
      */
     @Override
-    public List<String> move(Ring ring) {
+    public Output move(Ring ring) {
         return null;
     }
     
@@ -28,6 +28,6 @@ public class EmptyMove extends Strategy {
      */
     @Override
     public String toString() {
-        return "Empty move file is created (step file was invalid";
+        return "Empty move file is created (step file was invalid).";
     }
 }

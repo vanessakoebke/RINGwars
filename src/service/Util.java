@@ -174,7 +174,7 @@ public class Util {
             }
         }
         String path = agentName + "/notes.txt";
-        String[] input = new String[8];
+        String[] input = new String[20];
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             int i = 0;
             String line;
@@ -245,9 +245,18 @@ public class Util {
                 puffer += 0.1;
             }
             
+            /*
+             * Reads which strategies (and in which ratio) were used last round.
+             */
+            String[] line10 = input[9].split(": ")[1].split(",");
+            double expansionRatio = Double.parseDouble(line10[0]);
+            double consolidationRatio = Double.parseDouble(line10[1]);;
+            double attackRatio = Double.parseDouble(line10[2]);;
+            double defensiveRatio = Double.parseDouble(line10[3]);;
+            
             //If parsing has concluded successfully, the information will be stored in the notes object.
             notes = new Notes(round, strategie, attacksByOpponentTotal, attacksByOpponentLastRound, visibility,
-                    blockedAttacksTotal, blockedAttacksLastRound, puffer);
+                    blockedAttacksTotal, blockedAttacksLastRound, puffer, expansionRatio, consolidationRatio, attackRatio, defensiveRatio);
         } catch (Exception e) {
             System.out.println("The notes file is empty or invalid.");
             e.printStackTrace();

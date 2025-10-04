@@ -9,6 +9,7 @@ import model.*;
  * Abstract class, which declares the methods that are common to all strategies and some utility methods (static).
  */
 public abstract class Strategy {
+    int ferniesForThisStrategy;
     Notes notes;
 
     /**
@@ -20,11 +21,12 @@ public abstract class Strategy {
     }
 
     /**
-     * Returns the output to be written in the move file.
+     * Executes the given strategy. Returns the output to be written in the move file.
      * @param ring the ring
      * @return output 
      */
-    public abstract List<String> move(Ring ring);
+    public abstract Output move(Ring ring);
+    
 
     /**
      * Static method that returns a strategy based on the state of the ring and the notes.
@@ -36,15 +38,19 @@ public abstract class Strategy {
         if (ring == null) {
             return new EmptyMove(notes);
         } else if (!ring.isOpponentVisible() || (ring.isOpponentVisible() && notes.getOpponentStrategy() != StrategyOpponent.AGRESSIVE)) {
+            notes.setRatios(1, 0, 0, 0);
             return new Expansion(notes);
         } else if (ring.getAverageFerniesPerNode(Ownership.THEIRS) > ring.getAverageFerniesPerNode(Ownership.MINE) * 2
                 || notes.getOpponentStrategy() == StrategyOpponent.AGRESSIVE) {
+            notes.setRatios(0, 1, 0, 0);
             return new Consolidation(notes);
         } else if ((ring.getFernies(Ownership.MINE) > ring.getFernies(Ownership.THEIRS))) {
+            notes.setRatios(0, 0, 1, 0);
             return new Attack(notes);
 //        } else if (ring.getFernies(Besitz.MEINS) < ring.getFernies(Besitz.SEINS)) {
 //            return new Defensiv(notizen);
         } else {
+            notes.setRatios(0, 0, 0, 0);
             return new FallBack(notes); 
         }
     }

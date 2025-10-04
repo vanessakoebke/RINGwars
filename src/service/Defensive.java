@@ -11,13 +11,25 @@ public class Defensive extends Strategy {
     }
 
     @Override
-    public List<String> move(Ring ring) {
-        // TODO Auto-generated method stub
-        return null;
+    public Output move(Ring ring) {
+        Output output = new Output(ring.getMaxFerniesThisRound());
+        removeUnnecessary(ring, output);
+       output = move(ring, output, 1);
+       distributeUnused(ring, output);
+       return output;
     }
     
     @Override
     public String toString() {
         return "Defensive";
+    }
+
+    public Output move(Ring ring, Output output, double ratio) {
+        if (ratio == 0) {
+            return output;
+        }
+        ferniesForThisStrategy = (int) (ring.getAvailableFernies() * ratio);
+        return output;
+        
     }
 }

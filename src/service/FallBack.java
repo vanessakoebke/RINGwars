@@ -16,10 +16,11 @@ public class FallBack extends Strategy {
      * Returns a very simple output. Uses only the {@link FallBack#distributeUnused} method.
      */
     @Override
-    public List<String> move(Ring ring) {
+    public Output move(Ring ring) {
         Output output = new Output(ring.getMaxFerniesThisRound());
+        removeUnnecessary(ring, output);
         distributeUnused(ring, output);
-        return output.getOutput(ring);
+        return output;
     }
     
     /**

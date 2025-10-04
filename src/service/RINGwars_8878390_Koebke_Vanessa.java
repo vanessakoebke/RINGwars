@@ -28,9 +28,11 @@ public class RINGwars_8878390_Koebke_Vanessa {
         Notes notes = Util.readNotes(agentName, ring, round);
         Strategy strategy = Strategy.getStrategy(ring, notes);
         System.out.println("Executed strategy: " + strategy.toString());
-        List<String> output = strategy.move(ring);
+        Output output = strategy.move(ring);
         
-        Util.writeMove(output, agentName);
+        List<String> stringOutput = output.getOutput(ring);
+        
+        Util.writeMove(stringOutput, agentName);
         Util.writeNotes(notes.toString(), agentName);
         System.out.println("The program terminated successfully.");
     }

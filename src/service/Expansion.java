@@ -10,10 +10,20 @@ public class Expansion extends Strategy {
     }
 
     @Override
-    public List<String> move(Ring ring) {
-        
+    public Output move(Ring ring){
         Output output = new Output(ring.getMaxFerniesThisRound());
         removeUnnecessary(ring, output);
+       output = move(ring, output, 1);
+       distributeUnused(ring, output);
+       return output;
+    }
+    
+    public Output move(Ring ring, Output output, double ratio) {
+        if (ratio == 0) {
+            return output;
+        }
+        ferniesForThisStrategy = (int) (ring.getAvailableFernies() * ratio);
+
         List<Node> freeNodes = ring.getNodes(Ownership.UNCONTROLLED);
         Node node = null;
         int numberFreeNodes = freeNodes.size();
@@ -25,23 +35,26 @@ public class Expansion extends Strategy {
          * to the left and right of the starting node.
          */
 
-        if (ring.getAvailableFernies() < numberFreeNodes) {
+        if (ferniesForThisStrategy < numberFreeNodes) {
             int i = 0;
-            while (ring.getAvailableFernies() > 0 && !freeNodes.isEmpty()) {
+            while (ferniesForThisStrategy> 0 && !freeNodes.isEmpty()) {
                 try {
                     if (i % 2 == 0) {
                         node = freeNodes.getFirst();
                         freeNodes.removeFirst();
                         ring.addFernies(node.getNodeNumber(), 1);
+                        ferniesForThisStrategy -= 1;
                         output.upsert(node.getNodeNumber(), 1);
                     } else {
                         node = freeNodes.getLast();
                         freeNodes.removeLast();
                         ring.addFernies(node.getNodeNumber(), 1);
+                        ferniesForThisStrategy -= 1;
                         output.upsert(node.getNodeNumber(), 1);
                     }
                 }  catch (FernieException e) {
                     output.upsert(node.getNodeNumber(), e.getFernies());
+                    ferniesForThisStrategy -= e.getFernies();
                 } catch (MoveException e) {
                     System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
                 } finally {
@@ -54,22 +67,23 @@ public class Expansion extends Strategy {
              * be distributed evenly among all free nodes.
              */
             Iterator<Node> iterator = freeNodes.iterator();
-            int ferniesPerNode = ring.getAvailableFernies() / (numberFreeNodes);
-            while (ring.getAvailableFernies() > 0 && iterator.hasNext()) {
+            int ferniesPerNode = ferniesForThisStrategy / (numberFreeNodes);
+            while (ferniesForThisStrategy > 0 && iterator.hasNext()) {
                 node = iterator.next();
                 try {
                     ring.addFernies(node.getNodeNumber(), ferniesPerNode);
+                    ferniesForThisStrategy -= ferniesPerNode;
                     output.upsert(node.getNodeNumber(), ferniesPerNode);
                 }  catch (FernieException e) {
+                    ferniesForThisStrategy -= ferniesPerNode;
                     output.upsert(node.getNodeNumber(), e.getFernies());
                 } catch (MoveException e) {
                     System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
                 } 
             }
         } 
-        distributeUnused(ring, output); 
         
-        return output.getOutput(ring);
+        return output;
     }
     
     @Override
