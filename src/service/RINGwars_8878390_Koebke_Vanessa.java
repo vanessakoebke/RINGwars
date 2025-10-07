@@ -1,5 +1,6 @@
 package service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import model.*;
@@ -25,12 +26,38 @@ public class RINGwars_8878390_Koebke_Vanessa {
             System.out.println(e.getMessage());
             System.out.println("An empty move file will be created.");
         }
+        //TODO Disable tracker block before handing in.
+        Tracker.read();
+        if (round == 1) {
+            Tracker.flag = false;
+        }
+        if (!Tracker.flag) {
+            if (ring.getVisibilityPercentage() == 1 && ring.getNodes(Ownership.THEIRS).size() == 0) {
+                Tracker.addWin();
+            } else if (ring.getNodes(Ownership.MINE).size() == 0) {
+                Tracker.addLoss();
+            }
+            Tracker.write();
+        }
+        //End tracker block
+        
         Notes notes = Util.readNotes(agentName, ring, round);
-        Strategy strategy = DrSmartyPants.getStrategy();
+        Strategy strategy = null;
+        try {
+            strategy = DrSmartyPants.getStrategy(ring, Util.readStatusFile(agentName, round-1), notes);
+        } catch (InvalidStatusException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         System.out.println("Executed strategy: " + strategy.toString());
         Output output = strategy.move(ring);
         
-        List<String> stringOutput = output.getOutput(ring);
+        List<String> stringOutput;
+        if(output == null) {
+            stringOutput = new ArrayList<>();
+        } else {
+            stringOutput = output.getOutput(ring);
+        }
         
         Util.writeMove(stringOutput, agentName);
         Util.writeNotes(notes.toString(), agentName);

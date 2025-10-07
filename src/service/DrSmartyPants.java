@@ -6,21 +6,13 @@ import model.*;
  * Implements the logic to deduce the optimal strategy for the given game history.
  */
 public class DrSmartyPants {
-    private static Ring thisRound;
-    private static Ring lastRound;
-    private static Notes notes;
-    
-    public Strategy run() {
-        double successConsolidation;
-        double successAttack;
-        double successDefensive;
-        return new Expansion(notes);
-    }
+
+
     
     /**
-     * Static method that returns a strategy based on the state of the ring this round, and last roung, and the notes.
+     * Method that returns a strategy based on the state of the ring this round, and last round, and the notes.
      */
-    public static Strategy getStrategy() {
+    public static  Strategy getStrategy(Ring thisRound, Ring lastRound, Notes notes) {
         if (thisRound == null) {
             return new EmptyMove(notes);
         } else if (!thisRound.isOpponentVisible() || (thisRound.isOpponentVisible() && notes.getOpponentStrategy() != StrategyOpponent.AGRESSIVE)) {

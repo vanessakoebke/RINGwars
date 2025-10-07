@@ -1,6 +1,7 @@
 package service;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import model.*;
@@ -18,6 +19,9 @@ public class Util {
      * @throws InvalidStatusException if the step file is invalid
      */
     public static Ring readStatusFile(String agentName, int step) throws InvalidStatusException {
+        if(step == 0) {
+            return null;
+        }
         String path = agentName + "/" + step + ".txt";
         String[] input = new String[5];
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -27,7 +31,8 @@ public class Util {
                 input[i++] = line;
             }
         } catch (FileNotFoundException e) {
-            System.out.println("The step file was not found. An empty move file will be created.");
+            System.out.println("The step file #"+ step + " was not found. An empty move file will be created.");
+            return null;
         } catch (IOException e) {
             System.out.println("The step file could not be read. An empty move file will be created.");
         }
@@ -47,6 +52,7 @@ public class Util {
          * different, something is wrong.
          */
         if (line1String.length != line2.length) {
+            System.out.println(2);
             throw new InvalidStatusException("Line 1 and 2 have a different number of elements.");
         }
         int numberNodes = line1String.length;
@@ -64,10 +70,12 @@ public class Util {
                 line1Int[i] = Integer.parseInt(line1String[i]);
             }
         } catch (NumberFormatException e) {
+            System.out.println(3);
             throw new InvalidStatusException("Number parsing for amount of fernies in line 1, 3 or 4 failed.");
         }
         // 4th check: if the node count is 0, something is wrong.
         if (numberNodes == 0) {
+            System.out.println(4);
             throw new InvalidStatusException("There are no nodes in the step file.");
         }
         Node[] nodeList = new Node[numberNodes];
@@ -77,12 +85,14 @@ public class Util {
              * wrong.
              */
             if ((line1Int[i] == -1 && !line2[i].equals("U")) || (line1Int[i] != -1 && line2[i].equals("U"))) {
+                System.out.println(5);
                 throw new InvalidStatusException("For node " + i
                         + " the visibility status in line 1 and 2 don't match. (Line 1 has -1 and line 2 doesn't have U or the other way around.)");
             }
             // 6th check: if a node status is uncontrolled and the fernie count is != 0,
             // something is wrong.
             if ((line1Int[i] == 0 && !line2[i].equals("N")) || (line1Int[i] != 0 && line2[i].equals("N"))) {
+                System.out.println(6);
                 throw new InvalidStatusException("For node " + i
                         + " the uncontrolled status of line 1 and 2 don't match. (Line 1 has 0 and line doesn't have N, or the other way around.)");
             }
@@ -189,18 +199,21 @@ public class Util {
             return new Notes(round, visibilityCalculated);
         }
         /*
-         * If the notes file can be read, I will try to parse the visibility range saved in the notes file, since it might be more
-         * accurate than the calculated one (i.e. if the whole ring is visible, the calculation above won't work properly).
+         * If the notes file can be read, I will try to parse the visibility range saved
+         * in the notes file, since it might be more accurate than the calculated one
+         * (i.e. if the whole ring is visible, the calculation above won't work
+         * properly).
          */
         Notes notes;
         int visibility = 0;
         /*
-         * To parse my notes file I always use the code input[i].split(": ")[1]. This splits the line at the end of the descriptor (": "),
-         * and I will only need the part after the descriptor ([1]).
+         * To parse my notes file I always use the code input[i].split(": ")[1]. This
+         * splits the line at the end of the descriptor (": "), and I will only need the
+         * part after the descriptor ([1]).
          */
         try {
             String line1 = input[0].split(": ")[1];
-            //TODO Strategie des Gegners besser verarbeiten
+            // TODO Strategie des Gegners besser verarbeiten
             StrategyOpponent strategie;
             switch (line1) {
             case "AGRESSIVE":
@@ -210,22 +223,24 @@ public class Util {
             default:
                 strategie = StrategyOpponent.UNKNOWN;
             }
-            //TODO besser parsen
+            // TODO besser parsen
             int attacksByOpponentTotal = Integer.parseInt(input[1].split(": ")[1]);
             int attacksByOpponentLastRound = Integer.parseInt(input[2].split(": ")[1]);
-            //The visibility range can be read from line 4.
+            // The visibility range can be read from line 4.
             visibility = Integer.parseInt(input[3].split(": ")[1]);
-            
             /*
              * The attacks the agent has carried out last round can be read from line 5.
-             * After parsing them into an int array, I will check whether an attacked node has become mine.
-             * If not, it increments the counter of blocked attacks. This will be important for determining a 
-             * possible defensive strategy by the opponent and the attack buffer for the current round.
+             * After parsing them into an int array, I will check whether an attacked node
+             * has become mine. If not, it increments the counter of blocked attacks. This
+             * will be important for determining a possible defensive strategy by the
+             * opponent and the attack buffer for the current round.
              */
-            String[] line5String = input[4].split(": ")[1].split(",");
-            int[] myAttacksLastRound = new int[line5String.length];
-            for (int i = 0; i < line5String.length; i++) {
-                myAttacksLastRound[i] = Integer.parseInt(line5String[i]);
+            List<Integer> myAttacksLastRound = new ArrayList<>();
+            if (input[4].split(": ").length > 1) {
+                String[] line5String = input[4].split(": ")[1].split(",");
+                for (int i = 0; i < line5String.length; i++) {
+                    myAttacksLastRound.add(Integer.parseInt(line5String[i]));
+                }
             }
             int sumBlockedAttacksLastRound = 0;
             for (int nodeNumber : myAttacksLastRound) {
@@ -233,35 +248,46 @@ public class Util {
                     sumBlockedAttacksLastRound++;
                 }
             }
-            double blockedAttacksLastRound = (double) (sumBlockedAttacksLastRound / myAttacksLastRound.length);
-            double blockedAttacksTotal = ((Double.parseDouble(input[6].split(": ")[1]) * round -1) + (blockedAttacksLastRound)) /round ;
-            
+            double blockedAttacksLastRound = -1;
+            if (myAttacksLastRound.size() != 0) {
+                blockedAttacksLastRound = (double) (sumBlockedAttacksLastRound / myAttacksLastRound.size());
+            }
+            double blockedAttacksTotal =-1;
+            if (round > 1) {
+                blockedAttacksTotal = ((Double.parseDouble(input[6].split(": ")[1]) * round - 1)
+                        + (blockedAttacksLastRound)) / round;
+            }
             /*
-             * Reads last rounds attack buffer from the file. If more than 30% of last rounds attacks were blocked,
-             * the attack buffer will be incremented by 10% points.
+             * Reads last rounds attack buffer from the file. If more than 30% of last
+             * rounds attacks were blocked, the attack buffer will be incremented by 10%
+             * points.
              */
-            double puffer = Double.parseDouble(input[8].split(": ")[1]);
+            double puffer = Double.parseDouble(input[7].split(": ")[1]);
             if (blockedAttacksLastRound > 0.3) {
                 puffer += 0.1;
             }
-            
             /*
              * Reads which strategies (and in which ratio) were used last round.
              */
-            String[] line10 = input[9].split(": ")[1].split(",");
+            String[] line10 = input[8].split(": ")[1].split(",");
             double expansionRatio = Double.parseDouble(line10[0]);
-            double consolidationRatio = Double.parseDouble(line10[1]);;
-            double attackRatio = Double.parseDouble(line10[2]);;
-            double defensiveRatio = Double.parseDouble(line10[3]);;
-            
-            //If parsing has concluded successfully, the information will be stored in the notes object.
+            double consolidationRatio = Double.parseDouble(line10[1]);
+            ;
+            double attackRatio = Double.parseDouble(line10[2]);
+            ;
+            double defensiveRatio = Double.parseDouble(line10[3]);
+            ;
+            // If parsing has concluded successfully, the information will be stored in the
+            // notes object.
             notes = new Notes(round, strategie, attacksByOpponentTotal, attacksByOpponentLastRound, visibility,
-                    blockedAttacksTotal, blockedAttacksLastRound, puffer, expansionRatio, consolidationRatio, attackRatio, defensiveRatio);
+                    blockedAttacksTotal, blockedAttacksLastRound, puffer, expansionRatio, consolidationRatio,
+                    attackRatio, defensiveRatio);
         } catch (Exception e) {
             System.out.println("The notes file is empty or invalid.");
             e.printStackTrace();
             /*
-             * If parsing the visibility range from the notes file failed, I will use the calculated visibility from above.
+             * If parsing the visibility range from the notes file failed, I will use the
+             * calculated visibility from above.
              */
             if (visibility == 0) {
                 visibility = visibilityCalculated;

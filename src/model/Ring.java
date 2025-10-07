@@ -445,4 +445,13 @@ public class Ring {
         }
         return result;
     }
+    
+    @Override
+    public String toString() {
+        String string = "";
+        for (Node node: nodeList) {
+            string += node.getNodeNumber() + ";";
+        }
+        return string;
+    }
 }
