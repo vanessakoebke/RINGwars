@@ -10,6 +10,8 @@ import model.*;
  * Utility class with static methods for reading and writing files.
  */
 public class Util {
+    private static String agentNamePerm;
+
     /**
      * Reads the current step file.
      * 
@@ -19,7 +21,8 @@ public class Util {
      * @throws InvalidStatusException if the step file is invalid
      */
     public static Ring readStatusFile(String agentName, int step) throws InvalidStatusException {
-        if(step == 0) {
+        agentNamePerm = agentName;
+        if (step == 0) {
             return null;
         }
         String path = agentName + "/" + step + ".txt";
@@ -31,7 +34,7 @@ public class Util {
                 input[i++] = line;
             }
         } catch (FileNotFoundException e) {
-            System.out.println("The step file #"+ step + " was not found. An empty move file will be created.");
+            System.out.println("The step file #" + step + " was not found. An empty move file will be created.");
             return null;
         } catch (IOException e) {
             System.out.println("The step file could not be read. An empty move file will be created.");
@@ -99,6 +102,10 @@ public class Util {
             nodeList[i] = new Node(i, line2[i], line1Int[i]);
         }
         return new Ring(nodeList, maxFerniesPerNode, availableFernies);
+    }
+
+    public static Ring readStatusFile(int step) throws InvalidStatusException {
+        return readStatusFile(agentNamePerm, step);
     }
 
     /**
@@ -179,7 +186,7 @@ public class Util {
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Hilfe, beim ermitteln der Sichtbarkeit ist was schief gelaufen.");
+                System.out.println("Hilfe, beim Ermitteln der Sichtbarkeit ist was schief gelaufen.");
                 e.printStackTrace();
             }
         }
@@ -212,25 +219,38 @@ public class Util {
          * part after the descriptor ([1]).
          */
         try {
-            String line1 = input[0].split(": ")[1];
-            // TODO Strategie des Gegners besser verarbeiten
-            StrategyOpponent strategie;
-            switch (line1) {
-            case "AGRESSIVE":
-                strategie = StrategyOpponent.AGRESSIVE;
-            case "DEFENSIVE":
-                strategie = StrategyOpponent.DEFENSIVE;
+            String[] line1 = input[0].split(": ")[1].split(",");
+            // Parse opponent strategy
+            StrategyOpponent agressive;
+            StrategyOpponent defensive;
+            switch (line1[0]) {
+            case "AGRESSIVE_1":
+                agressive = StrategyOpponent.AGRESSIVE_1;
+            case "AGRESSIVE_2":
+                agressive = StrategyOpponent.AGRESSIVE_2;
+            case "AGRESSIVE_3":
+                agressive = StrategyOpponent.AGRESSIVE_3;
             default:
-                strategie = StrategyOpponent.UNKNOWN;
+                agressive = StrategyOpponent.UNKNOWN;
             }
-            // TODO besser parsen
+            switch (line1[1]) {
+            case "DEFENSIVE_1":
+                defensive = StrategyOpponent.DEFENSIVE_1;
+            case "DEFENSIVE_2":
+                defensive = StrategyOpponent.DEFENSIVE_2;
+            case "DEFENSIVE_3":
+                defensive = StrategyOpponent.DEFENSIVE_3;
+            default:
+                defensive = StrategyOpponent.UNKNOWN;
+            }
+            StrategyOpponent[] strategyOpponent = { agressive, defensive };
+            // Parse total number of attacks carried out by the opponent during current game
             int attacksByOpponentTotal = Integer.parseInt(input[1].split(": ")[1]);
-            int attacksByOpponentLastRound = Integer.parseInt(input[2].split(": ")[1]);
-            // The visibility range can be read from line 4.
+            // Parse visibility range
             visibility = Integer.parseInt(input[3].split(": ")[1]);
             /*
-             * The attacks the agent has carried out last round can be read from line 5.
-             * After parsing them into an int array, I will check whether an attacked node
+             * The attacks my agent has carried out last round can be read from line 5.
+             * After parsing them into a Integer list, I will check whether an attacked node
              * has become mine. If not, it increments the counter of blocked attacks. This
              * will be important for determining a possible defensive strategy by the
              * opponent and the attack buffer for the current round.
@@ -242,20 +262,10 @@ public class Util {
                     myAttacksLastRound.add(Integer.parseInt(line5String[i]));
                 }
             }
-            int sumBlockedAttacksLastRound = 0;
-            for (int nodeNumber : myAttacksLastRound) {
-                if (ring.getNodeByNumber(nodeNumber).getOwner() != Ownership.MINE) {
-                    sumBlockedAttacksLastRound++;
-                }
-            }
             double blockedAttacksLastRound = -1;
-            if (myAttacksLastRound.size() != 0) {
-                blockedAttacksLastRound = (double) (sumBlockedAttacksLastRound / myAttacksLastRound.size());
-            }
-            double blockedAttacksTotal =-1;
+            double blockedAttacksTotal = -1;
             if (round > 1) {
-                blockedAttacksTotal = ((Double.parseDouble(input[6].split(": ")[1]) * round - 1)
-                        + (blockedAttacksLastRound)) / round;
+                blockedAttacksTotal = Double.parseDouble(input[6].split(": ")[1]);
             }
             /*
              * Reads last rounds attack buffer from the file. If more than 30% of last
@@ -272,16 +282,14 @@ public class Util {
             String[] line10 = input[8].split(": ")[1].split(",");
             double expansionRatio = Double.parseDouble(line10[0]);
             double consolidationRatio = Double.parseDouble(line10[1]);
-            ;
-            double attackRatio = Double.parseDouble(line10[2]);
-            ;
-            double defensiveRatio = Double.parseDouble(line10[3]);
-            ;
+            double attackMaxRatio = Double.parseDouble(line10[2]);
+            double attackMinRatio = Double.parseDouble(line10[3]);
+            double defensiveRatio = Double.parseDouble(line10[4]);
+            double[] ratios = { expansionRatio, consolidationRatio, attackMaxRatio, attackMinRatio, defensiveRatio };
             // If parsing has concluded successfully, the information will be stored in the
             // notes object.
-            notes = new Notes(round, strategie, attacksByOpponentTotal, attacksByOpponentLastRound, visibility,
-                    blockedAttacksTotal, blockedAttacksLastRound, puffer, expansionRatio, consolidationRatio,
-                    attackRatio, defensiveRatio);
+            notes = new Notes(round, strategyOpponent, attacksByOpponentTotal, 0, visibility, myAttacksLastRound,
+                    blockedAttacksTotal, blockedAttacksLastRound, puffer, ratios);
         } catch (Exception e) {
             System.out.println("The notes file is empty or invalid.");
             e.printStackTrace();

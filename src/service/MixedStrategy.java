@@ -1,41 +1,26 @@
 package service;
 
-import java.util.List;
-
 import model.*;
 
 public class MixedStrategy extends Strategy {
-    private double expansionRatio;
-    private double consolidationRatio;
-    private double attackRatio;
-    private double defensiveRatio;
-    private boolean attackMax;
-    
-    private MixedStrategy(Notes notes, double expansionRatio, double consolidationRatio, double attackRatio,
-            double defensiveRatio, boolean attackMax) {
+    double[] ratio;
+
+    public MixedStrategy(Notes notes) {
         super(notes);
-        this.expansionRatio = expansionRatio;
-        this.consolidationRatio = consolidationRatio;
-        this.attackRatio = attackRatio;
-        this.defensiveRatio = defensiveRatio;
-        this.attackMax = attackMax;
+        this.ratio = notes.getRatiosThisRound();
     }
 
     @Override
+    // TODO rations einpassen
     public Output move(Ring ring) {
         Output output = new Output(ring.getMaxFerniesThisRound());
         removeUnnecessary(ring, output);
-        new Consolidation(notes).move(ring, output, consolidationRatio);
-        if (attackMax) {
-            new AttackMax(notes).move(ring, output, attackRatio);
-        } else {
-            new AttackMin(notes).move(ring, output, attackRatio);
-        }
-        new Defensive(notes).move(ring, output, defensiveRatio);
-        new Defensive(notes).move(ring, output, expansionRatio);
+        new Consolidation(notes).move(ring, output, ratio[1]);
+        new AttackMax(notes).move(ring, output, ratio[2]);
+        new AttackMin(notes).move(ring, output, ratio[3]);
+        new Defensive(notes).move(ring, output, ratio[4]);
+        new Defensive(notes).move(ring, output, ratio[0]);
         distributeUnused(ring, output);
         return output;
     }
-
-
 }

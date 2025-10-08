@@ -26,7 +26,7 @@ public class RINGwars_8878390_Koebke_Vanessa {
             System.out.println(e.getMessage());
             System.out.println("An empty move file will be created.");
         }
-        //TODO Disable tracker block before handing in.
+        // TODO Disable tracker block before handing in.
         Tracker.read();
         if (round == 1) {
             Tracker.flag = false;
@@ -39,28 +39,27 @@ public class RINGwars_8878390_Koebke_Vanessa {
             }
             Tracker.write();
         }
-        //End tracker block
-        
+        // End tracker block
         Notes notes = Util.readNotes(agentName, ring, round);
-        Strategy strategy = null;
-        try {
-            strategy = DrSmartyPants.getStrategy(ring, Util.readStatusFile(agentName, round-1), notes);
-        } catch (InvalidStatusException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        if (round != 1) {
+            DrSmartyPants.analyze(ring, notes);
         }
-        System.out.println("Executed strategy: " + strategy.toString());
+        Strategy strategy = null;
+        strategy = DrSmartyPants.getStrategy(ring, notes);
+        String stars = "****";
+        System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);
+        System.out.println("Executed strategy: Expansion (" + notes.getRatiosThisRound()[0] +"), Consolidation (" + notes.getRatiosThisRound()[1] +
+                "), AttackMax (" + notes.getRatiosThisRound()[2] + "), AttackMin ("+ notes.getRatiosThisRound()[2] + "), Defensive (" + notes.getRatiosThisRound()[4] + ")");
         Output output = strategy.move(ring);
-        
         List<String> stringOutput;
-        if(output == null) {
+        if (output == null) {
             stringOutput = new ArrayList<>();
         } else {
             stringOutput = output.getOutput(ring);
         }
-        
         Util.writeMove(stringOutput, agentName);
         Util.writeNotes(notes.toString(), agentName);
         System.out.println("The program terminated successfully.");
+        System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);
     }
 }

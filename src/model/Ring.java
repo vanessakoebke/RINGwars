@@ -446,6 +446,16 @@ public class Ring {
         return result;
     }
     
+    public int calcUnnecessary() {
+        int result = 0;
+        for (Node node: getNodes(Ownership.MINE)) {
+            if (node.getFernieCount() > 1) {
+                result += node.getFernieCount() -1;
+            }
+        }
+        return result;
+    }
+    
     @Override
     public String toString() {
         String string = "";
