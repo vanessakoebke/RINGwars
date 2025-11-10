@@ -6,7 +6,8 @@ import java.util.List;
 import model.*;
 
 /**
- * Abstract class, which declares the methods that are common to all strategies and some utility methods (static).
+ * Abstract class, which declares the methods that are common to all strategies
+ * and some utility methods (static).
  */
 public abstract class Strategy {
     int ferniesForThisStrategy;
@@ -14,6 +15,7 @@ public abstract class Strategy {
 
     /**
      * Initializes a strategy with the notes from the previous round.
+     * 
      * @param notes notes
      */
     public Strategy(Notes notes) {
@@ -21,15 +23,18 @@ public abstract class Strategy {
     }
 
     /**
-     * Executes the given strategy. Returns the output to be written in the move file.
+     * Executes the given strategy. Returns the output to be written in the move
+     * file.
+     * 
      * @param ring the ring
-     * @return output 
+     * @return output
      */
     public abstract Output move(Ring ring);
 
-    
     /**
-     * Returns the opponent's strategy based on information from previous rounds if available.
+     * Returns the opponent's strategy based on information from previous rounds if
+     * available.
+     * 
      * @return opponent's strategy
      */
     public static StrategyOpponent getGegnerischeStrategie() {
@@ -37,38 +42,28 @@ public abstract class Strategy {
     }
 
     /**
-     * Distributes all unused fernies first on uncontrolled nodes, and, if they were all full, on the agent's nodes.
-     * @param ring current status of the ring
-     * @param  output output so far
+     * Distributes all unused fernies first on uncontrolled nodes, and, if they were
+     * all full, on the agent's nodes.
+     * 
+     * @param ring   current status of the ring
+     * @param output output so far
      */
     public void distributeUnused(Ring ring, Output output) {
         /*
-         *First the unused fernies are distributed on the uncontrolled nodes, since this is the most efficient (bonus fernies per occupied node).
+         * First the unused fernies are distributed on the uncontrolled nodes, since
+         * this is the most efficient (bonus fernies per occupied node).
          */
-        List<Node> currentNodeList = ring.getNodes(Ownership.UNCONTROLLED);
         int availableFernies;
-        while ((!ring.isRingFull(Ownership.UNCONTROLLED)) && ring.getAvailableFernies() > 0) {
-            availableFernies = ring.getAvailableFernies();
-            try {
-                ring.addFernies(currentNodeList.getFirst().getNodeNumber(), availableFernies);
-                output.upsert(currentNodeList.getFirst().getNodeNumber(), availableFernies);
-            } catch (FernieException e) {
-                output.upsert(currentNodeList.getFirst().getNodeNumber(), e.getFernies());
-            } catch (MoveException e) {
-                System.out
-                        .println("Node number " + currentNodeList.getFirst().getNodeNumber() + ": " + e.getMessage());
-                e.printStackTrace();
-            } finally {
-                currentNodeList.removeFirst();
-            }
-        }
+        System.out.println("Unused fernies are being distributed.");
+        output = new Expansion(notes).move(ring, output, 1);
         /*
-         * If there are no more uncontrolled nodes, the functions proceeds with filling up the nodes the agent owns, in order
-         * to secure them against potential attacks.
+         * If there are no more uncontrolled nodes, the functions proceeds with filling
+         * up the nodes the agent owns, in order to secure them against potential
+         * attacks.
          */
-        while (!ring.isRingFull(Ownership.MINE) && ring.getAvailableFernies() > 0) {
-            //TODO hier eventuell die Knoten die am nächsten am Gegner sind zuerst besetzen
-            Node node = ring.getMinNode(Ownership.MINE);
+        while (!ring.isRingFull(Owner.MINE) && ring.getAvailableFernies() > 0) {
+            // TODO hier eventuell die Knoten die am nächsten am Gegner sind zuerst besetzen
+            Node node = ring.getMinNode(Owner.MINE);
             availableFernies = ring.getAvailableFernies();
             try {
                 ring.addFernies(node.getNodeNumber(), availableFernies);
@@ -103,31 +98,81 @@ public abstract class Strategy {
 //            }
 //        }
     }
-    
+
     /**
-     * Leaves on every node owned by the agent only 1 fernie (to hold the node for obtaining the bonus for nodes controlled)
-     * and removes the remaining fernies to maximize the available fernie number.
-     * @param ring  ring
-     * @param output    output
+     * Leaves on every node owned by the agent only 1 fernie (to hold the node for
+     * obtaining the bonus for nodes controlled) and removes the remaining fernies
+     * to maximize the available fernie number.
+     * 
+     * @param ring   ring
+     * @param output output
      */
     public void removeUnnecessary(Ring ring, Output output) {
-        for (Node node: ring.getNodes(Ownership.MINE)) {
+        for (Node node : ring.getNodes(Owner.MINE)) {
             int errorCount = 0;
-            if (errorCount > ring.getNodes(Ownership.MINE).size()/2) {
+            if (errorCount > ring.getNodes(Owner.MINE).size() / 2) {
                 System.out.println("Something has gone very wrong in the removeUnnecessary method. The method"
                         + "was unsuccessful in more than half the cases.");
             }
             try {
                 if (node.getFernieCount() > 1) {
                     int temp = node.getFernieCount() - 1;
-                    ring.removeFernies(node.getNodeNumber(), temp);
-                    output.remove(node.getNodeNumber(), temp);
+                    if (temp > 0) {
+                        ring.removeFernies(node.getNodeNumber(), temp);
+                        output.remove(node.getNodeNumber(), temp);
+                    }
                 }
             } catch (MoveException e) {
-                // If removing fernies from one node was unsuccessful, the methode shall simply contrinue and remove the fernies from the other nodes.
+                // If removing fernies from one node was unsuccessful, the methode shall simply
+                // contrinue and remove the fernies from the other nodes.
                 errorCount++;
                 continue;
-            } 
+            }
+        }
+        System.out.println("Available fernies this round: " + ring.getAvailableFernies());
+    }
+
+    /**
+     * Removes all fernies from all nodes owned by the agent.
+     * @param ring ring
+     * @param output output
+     */
+    public void removeAll(Ring ring, Output output) {
+        for (Node node : ring.getNodes(Owner.MINE)) {
+            int errorCount = 0;
+            if (errorCount > ring.getNodes(Owner.MINE).size() / 2) {
+                System.out.println("Something has gone very wrong in the removeUnnecessary method. The method"
+                        + "was unsuccessful in more than half the cases.");
+            }
+            try {
+                int temp = node.getFernieCount();
+                ring.removeFernies(node.getNodeNumber(), temp);
+                output.remove(node.getNodeNumber(), temp);
+                notes.addAbandoned(node.getNodeNumber());
+            } catch (MoveException e) {
+                // If removing fernies from one node was unsuccessful, the methode shall simply
+                // contrinue and remove the fernies from the other nodes.
+                errorCount++;
+                continue;
+            }
+        }
+        System.out.println("Available fernies this round: " + ring.getAvailableFernies());
+    }
+    
+    /**
+     * This method checks whether the nodes on either side of a given node are occupied by the opponent. This serves to avoid unintended edge battles.
+     * @param ring ring
+     * @param node node which should be checked for neighbors
+     * @return true if opponent occupies neighboring nodes, else false
+     */
+     boolean checkForNeighbors(Ring ring, Node node) {
+         int next = (node.getNodeNumber() + 1) % ring.getNodes().length;
+         int prev = (node.getNodeNumber() - 1 + ring.getNodes().length) % ring.getNodes().length;
+        if (ring.getNodeByNumber(next).getOwner() == Owner.THEIRS ||
+                ring.getNodeByNumber(prev).getOwner() == Owner.THEIRS ) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

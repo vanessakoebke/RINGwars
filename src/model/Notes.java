@@ -24,7 +24,7 @@ import java.util.*;
  * </ul>
  */
 public class Notes {
-    private boolean analysisSuccessful = false;
+    private boolean initialAnalysis;
     private Ring previous = null;
     private int currentRound;
     private StrategyOpponent[] strategyOpponent;
@@ -32,6 +32,7 @@ public class Notes {
     private int lastRoundAttacksByOpponent;
     private int visibilityRadius;
     private List<Integer> myAttacksThisRound;
+    private List<Integer> abandoned;
     private double blockedAttacksTotal;
     private double blockedAttacksLastRound;
     private double attackBuffer;
@@ -40,8 +41,8 @@ public class Notes {
 
 
     public Notes(int round, StrategyOpponent[] strategyOpponent, int totalAttacksByOpponent,
-            int lastRoundAttacksByOpponent, int visibility, List<Integer> myAttacksLastRound,
-            double blockedAttacksTotal, double blockedAttacksLastRound, double attackBuffer, double[] ratios) {
+            int lastRoundAttacksByOpponent, int visibility, List<Integer> myAttacksLastRound, List<Integer> abandoned,
+            double blockedAttacksTotal, double blockedAttacksLastRound, double attackBuffer, double[] ratios, boolean analysis) {
         this.currentRound = round;
         this.strategyOpponent = strategyOpponent;
         if (strategyOpponent[0] == null) {
@@ -52,15 +53,17 @@ public class Notes {
         this.lastRoundAttacksByOpponent = lastRoundAttacksByOpponent;
         this.visibilityRadius = visibility;
         this.myAttacksThisRound = myAttacksLastRound;
+        this.abandoned = abandoned;
         this.blockedAttacksTotal = blockedAttacksTotal;
         this.blockedAttacksLastRound = blockedAttacksLastRound;
         this.attackBuffer = attackBuffer;
         this.ratiosLastRound = ratios;
         this.ratiosThisRound = ratios;
+        this.initialAnalysis = analysis;
     }
 
     public Notes(int round, int visibility) {
-        this(round, new StrategyOpponent[2], 0, 0, visibility, new ArrayList<Integer>(), 0.0, 0.0, 1.0, new double[]{0,0,0,0,0});
+        this(round, new StrategyOpponent[2], 0, 0, visibility, new ArrayList<Integer>(), new ArrayList<Integer>(), 0.0, 0.0, 1.0, new double[]{0,0,0,0,0}, false);
     }
 
     /**
@@ -88,7 +91,7 @@ public class Notes {
         this.strategyOpponent[0] = def;
     }
 
-    public void increment(StrategyOpponent s) {
+    public void incrementStrategy(StrategyOpponent s) {
         switch (s) {
         case AGRESSIVE_1:
             this.strategyOpponent[0] = StrategyOpponent.AGRESSIVE_2;
@@ -107,7 +110,7 @@ public class Notes {
         }
     }
 
-    public void decrement(StrategyOpponent s) {
+    public void decrementStrategy(StrategyOpponent s) {
         switch (s) {
         case AGRESSIVE_1:
             this.strategyOpponent[0] = StrategyOpponent.AGRESSIVE_1;
@@ -129,6 +132,10 @@ public class Notes {
         return totalAttacksByOpponent;
     }
 
+    public List<Integer> getAbandoned() {
+        return this.abandoned;
+    }
+    
     public int getVisibility() {
         return visibilityRadius;
     }
@@ -143,7 +150,13 @@ public class Notes {
      * @param nodeNumber attacked node number
      */
     public void addAttack(int nodeNumber) {
-        this.myAttacksThisRound.add(nodeNumber);
+        if (!myAttacksThisRound.contains(nodeNumber)) {
+            this.myAttacksThisRound.add(nodeNumber);
+        }
+    }
+    
+    public void addAbandoned(int nodeNumber) {
+        this.abandoned.add(nodeNumber);
     }
 
     public double getAttackBuffer() {
@@ -195,8 +208,9 @@ public class Notes {
         this.blockedAttacksLastRound = blockedAttacksLastRound;
     }
 
-    public void initMyAttacksThisRound() {
+    public void initNewRound() {
         myAttacksThisRound = new ArrayList<Integer>();
+        abandoned = new ArrayList<Integer>();
     }
 
     public void setPrevious(Ring previous) {
@@ -224,6 +238,17 @@ public class Notes {
         while (iterator.hasNext()) {
             myAttacksString += "," + String.valueOf(iterator.next());
         }
+        
+        String abandonedString = "";
+        Iterator<Integer> iteratorA = abandoned.iterator();
+        // The first element has been put before the while loop, so that the String
+        // doesn't end with a comma.
+        if (iteratorA.hasNext()) {
+            abandonedString = String.valueOf(iteratorA.next());
+        }
+        while (iteratorA.hasNext()) {
+            abandonedString += "," + String.valueOf(iteratorA.next());
+        }
         //@formatter:off
         return "Opponent's strategy: " + strategyOpponent[0] + "," + strategyOpponent[1] + System.lineSeparator() + 
                 "Opponent's attacks total: " + totalAttacksByOpponent + System.lineSeparator() + 
@@ -231,20 +256,20 @@ public class Notes {
                 "Visibility radius: " + visibilityRadius  + System.lineSeparator() + 
                 "My attacks last round: " + myAttacksString + System.lineSeparator() +
                 "Blocked attacks total: " + blockedAttacksTotal + System.lineSeparator() +
-                "Blocked attacks last roung: " + blockedAttacksLastRound + System.lineSeparator() + 
+                "Blocked attacks last round: " + blockedAttacksLastRound + System.lineSeparator() + 
                 "Attack buffer: " + attackBuffer + System.lineSeparator() +
                 "Used strategies (Expansion, Consolidation, Attack, Defensive): " + 
-                ratiosThisRound[0] + "," + ratiosThisRound[1] + "," + ratiosThisRound[2] + "," + ratiosThisRound[3] + "," + ratiosThisRound[4];
+                ratiosThisRound[0] + "," + ratiosThisRound[1] + "," + ratiosThisRound[2] + "," + ratiosThisRound[3] + "," + ratiosThisRound[4] + System.lineSeparator() +
+                "Abandoned nodes: " + abandonedString + System.lineSeparator() +
+                "Initial analysis concluded: " + initialAnalysis;
     }
     //@formatter:on
 
-    public boolean isAnalysisSuccessful() {
-        return analysisSuccessful;
+    public boolean isAnalysed() {
+        return initialAnalysis;
     }
 
-    public void setAnalysisSuccessful(boolean analysisSuccessful) {
-        this.analysisSuccessful = analysisSuccessful;
-    }
+
 
     /**
      * Sets the ration for the different kind of strategies.
@@ -284,6 +309,9 @@ public class Notes {
 
     public void increaseRatioBy(int strategy, double increase) {
         switch (strategy) {
+        /*
+         * Expansion
+         */
         case 0:
             if (ratiosThisRound[4] >= increase) {
                 ratiosThisRound[4] -= increase;
@@ -297,6 +325,7 @@ public class Notes {
                 return;
             }
             ratiosThisRound[0] += increase;
+        //Consolidation    
         case 1:
             if (ratiosThisRound[2] >= increase) {
                 ratiosThisRound[2] -= increase;
@@ -310,6 +339,7 @@ public class Notes {
                 return;
             }
             ratiosThisRound[1] += increase;
+        //AttackMax
         case 2:
             if (ratiosThisRound[4] >= increase) {
                 ratiosThisRound[4] -= increase;
@@ -323,6 +353,7 @@ public class Notes {
                 return;
             }
             ratiosThisRound[2] += increase;
+        //AttackMin
         case 3:
             if (ratiosThisRound[4] >= increase) {
                 ratiosThisRound[4] -= increase;
@@ -336,6 +367,7 @@ public class Notes {
                 return;
             }
             ratiosThisRound[2] += increase;
+        //Defensive
         case 4:
             if (ratiosThisRound[2] >= increase) {
                 ratiosThisRound[2] -= increase;
@@ -408,4 +440,8 @@ public class Notes {
 //            System.out.println("Deine Ratios stimmen nicht.");
 //        }
 //    }
+
+    public void setAnalysed() {
+        initialAnalysis = true;        
+    }
 }

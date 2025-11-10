@@ -5,7 +5,7 @@ package model;
  */
 public class Node {
     private final int nodeNumber;
-    private Ownership owner;
+    private Owner owner;
     private int fernieCount;
 
     /**
@@ -21,16 +21,16 @@ public class Node {
         this.fernieCount = fernieCount;
         switch (owner) {
         case "Y":
-            this.owner = Ownership.MINE;
+            this.owner = Owner.MINE;
             break;
         case "N":
-            this.owner = Ownership.UNCONTROLLED;
+            this.owner = Owner.UNCONTROLLED;
             break;
         case "U":
-            this.owner = Ownership.UNKNOWN;
+            this.owner = Owner.UNKNOWN;
             break;
         default:
-            this.owner = Ownership.THEIRS;
+            this.owner = Owner.THEIRS;
         }
     }
 
@@ -48,7 +48,7 @@ public class Node {
      * 
      * @return node owner
      */
-    public Ownership getOwner() {
+    public Owner getOwner() {
         return owner;
     }
 
@@ -75,12 +75,12 @@ public class Node {
      * @throws MoveException thrown if the move is invalid
      */
     public void addFernies(int fernies) throws MoveException {
-        if (owner == Ownership.MINE) {
+        if (owner == Owner.MINE) {
             this.fernieCount += fernies;
-        } else if (owner == Ownership.UNCONTROLLED && fernies > 0) {
-            this.owner = Ownership.MINE;
+        } else if (owner == Owner.UNCONTROLLED && fernies > 0) {
+            this.owner = Owner.MINE;
             this.fernieCount += fernies;
-        } else if (owner == Ownership.THEIRS) {
+        } else if (owner == Owner.THEIRS) {
             if (this.fernieCount < fernies) {
                 int temp = fernieCount;
                 this.fernieCount = fernies - temp;
@@ -89,7 +89,7 @@ public class Node {
                         "Schlechter Zug: Du versuchst gerade den Gegner anzugreifen und setzt aber zu wenig Fernies ein. Knotennummer: "
                                 + nodeNumber);
             }
-        } else if (owner == Ownership.UNKNOWN) {
+        } else if (owner == Owner.UNKNOWN) {
             throw new MoveException("Invalid move: You're trying to add fernies to an invisible node.");
         }
     }
@@ -104,16 +104,16 @@ public class Node {
      * @throws MoveException thrown if the move is invalid
      */
     public void removeFernies(int ferniesRemove) throws MoveException {
-        if (owner == Ownership.MINE && this.fernieCount - ferniesRemove >= 0) {
+        if (owner == Owner.MINE && this.fernieCount - ferniesRemove >= 0) {
             this.fernieCount -= ferniesRemove;
             if (fernieCount == 0) {
-                owner = Ownership.UNCONTROLLED;
+                owner = Owner.UNCONTROLLED;
             }
-        } else if (owner == Ownership.MINE && fernieCount - ferniesRemove < 0) {
+        } else if (owner == Owner.MINE && fernieCount - ferniesRemove < 0) {
             throw new MoveException(
                     "Ungültiger Zug: Du versuchst mehr Fernies von dem Knoten zu entfernen als vorhanden sind. Knotennummer: "
                             + nodeNumber);
-        } else {
+        } else if (owner != Owner.MINE){
             throw new MoveException(
                     "Ungültiger Zug: Du versuchst Knoten von einem Knoten zu entfernen, der nicht dir gehört. Knotennummer: "
                             + nodeNumber);
@@ -126,7 +126,7 @@ public class Node {
      * @return {@code true} if the node is visible, {@code false} otherwise
      */
     public boolean isVisible() {
-        return (owner != Ownership.UNKNOWN);
+        return (owner != Owner.UNKNOWN);
     }
     // TODO entfernen vor Abgabe
 //    @Override

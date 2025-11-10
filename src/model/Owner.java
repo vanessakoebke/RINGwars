@@ -3,6 +3,6 @@ package model;
 /**
  * Represents the ownership of a node.
  */
-public enum Ownership {
+public enum Owner {
     MINE, UNCONTROLLED, UNKNOWN, THEIRS;
 }

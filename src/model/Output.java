@@ -12,9 +12,12 @@ public class Output {
         outputList = new ArrayList<Line>();
     }
 
-    public List<String> getOutput(Ring ring) {
+    public List<String> getOutput(Ring ring)  {
         if (!check(ring)) {
+            System.out.println(outputList.toString());
             System.out.println("Something's wrong with the output. Use fallback strategy instead.");
+            //TODO fallback
+            
         }
         List<String> output = new ArrayList<String>();
         for (Line line : outputList) {
@@ -25,7 +28,7 @@ public class Output {
 
     // Helper method to check if more fernies have been used than were available this round.
     private boolean check(Ring ring) {
-        return ferniesTotal >= ring.getFernies(Ownership.MINE);
+        return ferniesTotal <= ring.getFernies(Owner.MINE);
     }
 
     public void upsert(int nodeNumber, int fernies) {
@@ -56,6 +59,11 @@ public class Output {
         private Line(int nodeNumber, int fernies) {
             this.nodeNumber = nodeNumber;
             this.fernies = fernies;
+        }
+        
+        @Override
+        public String toString() {
+            return nodeNumber + " " + fernies + ",";
         }
     }
 }

@@ -32,24 +32,23 @@ public class RINGwars_8878390_Koebke_Vanessa {
             Tracker.flag = false;
         }
         if (!Tracker.flag) {
-            if (ring.getVisibilityPercentage() == 1 && ring.getNodes(Ownership.THEIRS).size() == 0) {
+            if (ring.getVisibilityPercentage() == 1 && ring.getNodes(Owner.THEIRS).size() == 0) {
                 Tracker.addWin();
-            } else if (ring.getNodes(Ownership.MINE).size() == 0) {
+            } else if (ring.getNodes(Owner.MINE).size() == 0) {
                 Tracker.addLoss();
             }
             Tracker.write();
         }
         // End tracker block
         Notes notes = Util.readNotes(agentName, ring, round);
-        if (round != 1) {
-            DrSmartyPants.analyze(ring, notes);
-        }
         Strategy strategy = null;
         strategy = DrSmartyPants.getStrategy(ring, notes);
         String stars = "****";
         System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);
-        System.out.println("Executed strategy: Expansion (" + notes.getRatiosThisRound()[0] +"), Consolidation (" + notes.getRatiosThisRound()[1] +
-                "), AttackMax (" + notes.getRatiosThisRound()[2] + "), AttackMin ("+ notes.getRatiosThisRound()[2] + "), Defensive (" + notes.getRatiosThisRound()[4] + ")");
+        System.out.println(round);
+        System.out.println("Executed strategy: "+ strategy.toString() + System.lineSeparator() +
+                "Expansion (" + notes.getRatiosThisRound()[0] +"), Consolidation (" + notes.getRatiosThisRound()[1] +
+                "), AttackMax (" + notes.getRatiosThisRound()[2] + "), AttackMin ("+ notes.getRatiosThisRound()[3] + "), Defensive (" + notes.getRatiosThisRound()[4] + ")");
         Output output = strategy.move(ring);
         List<String> stringOutput;
         if (output == null) {
@@ -59,6 +58,7 @@ public class RINGwars_8878390_Koebke_Vanessa {
         }
         Util.writeMove(stringOutput, agentName);
         Util.writeNotes(notes.toString(), agentName);
+        System.out.println(stringOutput.toString());
         System.out.println("The program terminated successfully.");
         System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);
     }

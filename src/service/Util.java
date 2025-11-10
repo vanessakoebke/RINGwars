@@ -25,7 +25,8 @@ public class Util {
         if (step == 0) {
             return null;
         }
-        String path = agentName + "/" + step + ".txt";
+        System.out.println(step);
+        String path = agentName + File.separator + step + ".txt";
         String[] input = new String[5];
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             int i = 0;
@@ -116,8 +117,8 @@ public class Util {
      */
     public static void writeMove(List<String> output, String agentName) {
         File move = new File(agentName, "move.txt");
+        
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(move))) {
-            move.createNewFile();
             /*
              * in order for the move file not to end with an empty line, I have extracted
              * the first line from the for loop. The loop then starts with a line break.
@@ -177,11 +178,11 @@ public class Util {
             try {
                 Node lastNode = null;
                 for (Node node : ring.getNodes()) {
-                    if (node.getOwner() == Ownership.MINE) {
+                    if (node.getOwner() == Owner.MINE) {
                         lastNode = node;
                     }
-                    if (node.getOwner() == Ownership.UNKNOWN) {
-                        visibilityCalculated = node.getNodeNumber() - lastNode.getNodeNumber();
+                    if (node.getOwner() == Owner.UNKNOWN && lastNode !=null) {
+                        visibilityCalculated = node.getNodeNumber() - lastNode.getNodeNumber() -1 ;
                         break;
                     }
                 }
@@ -190,7 +191,10 @@ public class Util {
                 e.printStackTrace();
             }
         }
-        String path = agentName + "/notes.txt";
+        if (round == 1) {
+            return new Notes(round, visibilityCalculated);
+        }
+        String path = agentName + File.separator + "notes.txt";
         String[] input = new String[20];
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             int i = 0;
@@ -248,13 +252,7 @@ public class Util {
             int attacksByOpponentTotal = Integer.parseInt(input[1].split(": ")[1]);
             // Parse visibility range
             visibility = Integer.parseInt(input[3].split(": ")[1]);
-            /*
-             * The attacks my agent has carried out last round can be read from line 5.
-             * After parsing them into a Integer list, I will check whether an attacked node
-             * has become mine. If not, it increments the counter of blocked attacks. This
-             * will be important for determining a possible defensive strategy by the
-             * opponent and the attack buffer for the current round.
-             */
+            //Parse my attacks from last round
             List<Integer> myAttacksLastRound = new ArrayList<>();
             if (input[4].split(": ").length > 1) {
                 String[] line5String = input[4].split(": ")[1].split(",");
@@ -262,23 +260,16 @@ public class Util {
                     myAttacksLastRound.add(Integer.parseInt(line5String[i]));
                 }
             }
+            //Initalizing with -1 in order to distinguish between "no attacks were blocked" and "there haven't been any attacks"
             double blockedAttacksLastRound = -1;
             double blockedAttacksTotal = -1;
             if (round > 1) {
                 blockedAttacksTotal = Double.parseDouble(input[6].split(": ")[1]);
             }
-            /*
-             * Reads last rounds attack buffer from the file. If more than 30% of last
-             * rounds attacks were blocked, the attack buffer will be incremented by 10%
-             * points.
-             */
-            double puffer = Double.parseDouble(input[7].split(": ")[1]);
-            if (blockedAttacksLastRound > 0.3) {
-                puffer += 0.1;
-            }
-            /*
-             * Reads which strategies (and in which ratio) were used last round.
-             */
+            //Parse attack buffer
+            double buffer = Double.parseDouble(input[7].split(": ")[1]);
+
+            //Parse which strategies (and in which ratio) were used last round.
             String[] line10 = input[8].split(": ")[1].split(",");
             double expansionRatio = Double.parseDouble(line10[0]);
             double consolidationRatio = Double.parseDouble(line10[1]);
@@ -286,10 +277,26 @@ public class Util {
             double attackMinRatio = Double.parseDouble(line10[3]);
             double defensiveRatio = Double.parseDouble(line10[4]);
             double[] ratios = { expansionRatio, consolidationRatio, attackMaxRatio, attackMinRatio, defensiveRatio };
+            //Parse abandoned nodes
+            List<Integer> abandoned = new ArrayList<>();
+            if (input[9].split(": ").length > 1) {
+                String[] line11String = input[9].split(": ")[1].split(",");
+                for (int i = 0; i < line11String.length; i++) {
+                    abandoned.add(Integer.parseInt(line11String[i]));
+                }
+            }
+            //Parse whether initial analysis has already occurred
+            String analysisString = input[10].split(": ")[1];
+            boolean analysis;
+            if (analysisString.equals("true")) {
+                analysis = true;
+            } else {
+                analysis = false;
+            }
             // If parsing has concluded successfully, the information will be stored in the
             // notes object.
-            notes = new Notes(round, strategyOpponent, attacksByOpponentTotal, 0, visibility, myAttacksLastRound,
-                    blockedAttacksTotal, blockedAttacksLastRound, puffer, ratios);
+            notes = new Notes(round, strategyOpponent, attacksByOpponentTotal, 0, visibility, myAttacksLastRound, abandoned,
+                    blockedAttacksTotal, blockedAttacksLastRound, buffer, ratios, analysis);
         } catch (Exception e) {
             System.out.println("The notes file is empty or invalid.");
             e.printStackTrace();

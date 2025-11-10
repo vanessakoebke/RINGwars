@@ -24,7 +24,7 @@ public class Expansion extends Strategy {
         }
         ferniesForThisStrategy = (int) (ring.getAvailableFernies() * ratio);
 
-        List<Node> freeNodes = ring.getNodes(Ownership.UNCONTROLLED);
+        List<Node> freeNodes = ring.getNodes(Owner.UNCONTROLLED);
         Node node = null;
         int numberFreeNodes = freeNodes.size();
         /*
@@ -42,12 +42,11 @@ public class Expansion extends Strategy {
                     if (i % 2 == 0) {
                         node = freeNodes.getFirst();
                         freeNodes.removeFirst();
-                        ring.addFernies(node.getNodeNumber(), 1);
-                        ferniesForThisStrategy -= 1;
-                        output.upsert(node.getNodeNumber(), 1);
                     } else {
                         node = freeNodes.getLast();
                         freeNodes.removeLast();
+                    }
+                    if (!checkForNeighbors(ring, node)) {
                         ring.addFernies(node.getNodeNumber(), 1);
                         ferniesForThisStrategy -= 1;
                         output.upsert(node.getNodeNumber(), 1);
@@ -70,21 +69,25 @@ public class Expansion extends Strategy {
             int ferniesPerNode = ferniesForThisStrategy / (numberFreeNodes);
             while (ferniesForThisStrategy > 0 && iterator.hasNext()) {
                 node = iterator.next();
-                try {
-                    ring.addFernies(node.getNodeNumber(), ferniesPerNode);
-                    ferniesForThisStrategy -= ferniesPerNode;
-                    output.upsert(node.getNodeNumber(), ferniesPerNode);
-                }  catch (FernieException e) {
-                    ferniesForThisStrategy -= ferniesPerNode;
-                    output.upsert(node.getNodeNumber(), e.getFernies());
-                } catch (MoveException e) {
-                    System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
+                if (!checkForNeighbors(ring, node)) {
+                    try {
+                        ring.addFernies(node.getNodeNumber(), ferniesPerNode);
+                        ferniesForThisStrategy -= ferniesPerNode;
+                        output.upsert(node.getNodeNumber(), ferniesPerNode);
+                    } catch (FernieException e) {
+                        ferniesForThisStrategy -= ferniesPerNode;
+                        output.upsert(node.getNodeNumber(), e.getFernies());
+                    } catch (MoveException e) {
+                        System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
+                    } 
                 } 
             }
         } 
         
         return output;
     }
+    
+
     
     @Override
     public String toString() {

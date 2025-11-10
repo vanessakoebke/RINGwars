@@ -23,32 +23,7 @@ public class Consolidation extends Strategy {
             return output;
         }
         ferniesForThisStrategy = (int) (ring.getAvailableFernies() * ratio);
-        /*
-         * Here a list is created of nodes that are visible to the opponent and lie on my 
-         * side of the ring, compared to the opponent's outermost nodes.  
-         * To do this, I take the left opponent node with the lowest node number and the 
-         * right opponent node with the highest node number, and then iterate through a 
-         * for-loop with the length of the visibility radius towards my starting node.
-         */
-        List<Node> visibleForOpponent = new ArrayList<>();
-        Node leftmostOpponent = ring.getClosestOpponentLeft();
-        Node rightmostOpponent = ring.getClosestOpponentRight();
-        Node candidate;
-        for (int i = 1; i <= notes.getVisibility(); i++) {
-            int j = i; //Java wants the variable in a lambda expression to be effectively final, therefore I have to create a copy.
-            if (leftmostOpponent != null) {
-                candidate = ring.filter(k -> (k.getNodeNumber() == (leftmostOpponent.getNodeNumber() - j)));
-                if (candidate.getOwner() == Ownership.MINE) {
-                    visibleForOpponent.add(candidate);
-                }
-            }
-            if (rightmostOpponent != null) {
-                candidate = ring.filter(k -> (k.getNodeNumber() == (rightmostOpponent.getNodeNumber() + j)));
-                if (candidate.getOwner() == Ownership.MINE) {
-                    visibleForOpponent.add(candidate);
-                }
-            }
-        }
+        List<Node> visibleForOpponent = ring.getVisibleForOpponent(notes.getVisibility());
         /*
          * The list of nodes visible to the opponent has now been created.
          * First I remove all unnecessary fernies from invisible nodes.
@@ -60,16 +35,17 @@ public class Consolidation extends Strategy {
         if (ferniesForThisStrategy < visibleForOpponent.size()) {
             while (ferniesForThisStrategy > 0 && !visibleForOpponent.isEmpty()) {
                 try {
-                    node = visibleForOpponent.getFirst();
-                    visibleForOpponent.removeFirst();
-                    ring.addFernies(node.getNodeNumber(), 1);
-                    ferniesForThisStrategy -= 1;
-                    output.upsert(node.getNodeNumber(), 1);
-                } catch (FernieException e) {
-                    ferniesForThisStrategy -= 1;
-                    output.upsert(node.getNodeNumber(), e.getFernies());
+                    int index = visibleForOpponent.size() / 2; //Removing nodes from the middle of the list presumably removes the nodes that are furthest from the opponent
+                    node = visibleForOpponent.get(index);
+                    visibleForOpponent.remove(index);
+                    int fernies = node.getFernieCount();
+                    ring.removeFernies(node.getNodeNumber(), fernies);
+                    output.remove(node.getNodeNumber(), fernies);
+                    notes.addAbandoned(node.getNodeNumber());
+                    ferniesForThisStrategy += fernies;
                 } catch (MoveException e) {
                     System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
+                    e.printStackTrace();
                 } 
             }
         } else if (visibleForOpponent.size() > 0) {

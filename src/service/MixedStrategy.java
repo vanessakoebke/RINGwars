@@ -15,12 +15,17 @@ public class MixedStrategy extends Strategy {
     public Output move(Ring ring) {
         Output output = new Output(ring.getMaxFerniesThisRound());
         removeUnnecessary(ring, output);
-        new Consolidation(notes).move(ring, output, ratio[1]);
         new AttackMax(notes).move(ring, output, ratio[2]);
         new AttackMin(notes).move(ring, output, ratio[3]);
-        new Defensive(notes).move(ring, output, ratio[4]);
-        new Defensive(notes).move(ring, output, ratio[0]);
+        new Expansion(notes).move(ring, output, ratio[0]);
+        new Consolidation(notes).move(ring, output, ratio[1]);
+        //new Defensive(notes).move(ring, output, ratio[4]);
         distributeUnused(ring, output);
         return output;
+    }
+    
+    @Override
+    public String toString() {
+        return "MixedStrategy";
     }
 }
