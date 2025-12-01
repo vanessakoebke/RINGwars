@@ -18,11 +18,8 @@ import java.util.function.Predicate;
  */
 public class Ring {
     /*
-     * TODO translate In der Knotenliste werden alle Knoten sortiert nach
-     * Knotennummer gespeichert. ich verwende hier absichtlich ein Array und keine
-     * Liste, da die Knotenzahl sich während der Ausführung nicht verändern soll,
-     * und ich anders als bei einer Liste so nicht aus Versehen mehr Knoten einfügen
-     * kann als zulässig ist. Dient als Hilfe für mich zum Troubleshooten.
+     * In the node list all nodes are stored ordered by node number. I intentionally use an array and not a list, because the the number of nodes
+     * shall be fixed at the beginning, and no nodes may be added afterwards.
      */
     private Node[] nodeList;
     /*
@@ -42,7 +39,7 @@ public class Ring {
      * This value is final, since no additional fernies can be gained during a turn.
      * This attribute is used exclusively to be passed to the output (@see Ausgabe)
      * so it can verify that the sum of fernies in the output does not exceed the
-     * maximum number of fernies available per round.
+     * maximum number of fernies available in a given round.
      */
     private final int maxFerniesThisRound;
 
@@ -74,18 +71,10 @@ public class Ring {
     public int getNodeCount() {
         return nodeList.length;
     }
-    // TODO prüfen ob benötigt
-    /**
-     * Gibt ein Array mit allen Knoten auf dem Ring zurück.
-     * 
-     * @return vollständige Knotenliste
-     */
-//    public Knoten[] getAlleKnoten() {
-//        return knotenListe;
-//    }
+
 
     /**
-     * Returns a list of visible nodes.
+     * Returns the list of nodes that are visible to the agent.
      * 
      * @return visible nodes
      */
@@ -99,16 +88,28 @@ public class Ring {
         return visible;
     }
 
+    /**
+     * Returns the list of nodes that invisible to the opponent. The visibility used is the one calculated at the beginning of each
+     * round by {@link Util}.
+     * @param visibility the visibility radius
+     * @return nodes that are invisible to the opponent
+     */
     public List<Node> getInvisibleForOpponent(int visibility) {
         List<Node> result = new ArrayList<>();
         for (Node node : nodeList) {
-            if (!isVisibleForOpponent(node, visibility)) {
+            if (!isVisibleForOpponent(node, visibility) && node.isVisible() && node.getOwner() != Owner.THEIRS) {
                 result.add(node);
             }
         }
         return result;
     }
 
+    /**
+     * Returns the list of nodes that visible to the opponent. The visibility used is the one calculated at the beginning of each
+     * round by {@link Util}.
+     * @param visibility the visibility radius
+     * @return nodes that are visible to the opponent
+     */
     public List<Node> getVisibleForOpponent(int visibility) {
         List<Node> result = new ArrayList<>();
         for (Node node : nodeList) {
@@ -119,6 +120,13 @@ public class Ring {
         return result;
     }
 
+    /**
+     * Returns whether a given node is visible for the opponent. The visibility used is the one calculated at the beginning of each
+     * round by {@link Util}.
+     * @param node the node
+     * @param visibility the visibility radius
+     * @return true if the node is visible for the opponent, false otherwise
+     */
     private boolean isVisibleForOpponent(Node node, int visibility) {
         boolean visible = false;
         for (int i = 0; i <= visibility; i++) {
@@ -132,7 +140,7 @@ public class Ring {
     }
 
     /**
-     * Return whether the opponent is currently visible.
+     * Returns whether the opponent is currently visible.
      * 
      * @return {@code true} if opponent is visible, {@code false} otherwise
      */
@@ -186,7 +194,7 @@ public class Ring {
     }
 
     /**
-     * Returns the amound of fernies that are currently free to be placed.
+     * Returns the amount of fernies that are currently free to be placed.
      * 
      * @return available fernies
      */
@@ -260,10 +268,9 @@ public class Ring {
     public void addFernies(int nodeNumber, int fernies) throws MoveException {
         Node node = filter(x -> x.getNodeNumber() == nodeNumber);
         /*
-         * TODO translate Falls die Anzahl der Fernies, die bereits auf dem Knoten sind,
-         * plus die Anzahl der zu setzenden Fernies die maximal erlaubte Anzahl Fernies
-         * pro Knoten überschreitet, werden dem Knoten nur die Anzahl an Fernies
-         * hinzugefügt, bis die maximale Anzahl erreicht wird.
+         * If the number of fernies on the node + the amount of fernies to be placed is more than the maximum allowed number
+         * of fernies per node, there will be added only enough fernies to reach the maximum allowed number. This number of
+         * actually placed fernies is returned through a FernieException.
          */
         if (node.getOwner() == Owner.THEIRS) {
             // TODO entferne vor Abgabe
@@ -297,15 +304,19 @@ public class Ring {
         node.removeFernies(fernies);
         this.availableFernies += fernies;
     }
-    // TODO prüfen ob nötig
-//    private int getMaxFerniesProKnoten() {
-//        return maxFerniesPerNode;
-//    }
 
+    /**
+     * Returns how much of the ring is visible.
+     * @return visibility ratio of the ring
+     */
     public float getVisibilityPercentage() {
         return (float) getVisibleNodes().size() / nodeList.length;
     }
 
+    /**
+     * Returns whether all visible nodes on the ring are occupied to maximum fernie capacity.
+     * @return true if all visible nodes are fully occupied, false otherwise
+     */
     public boolean isRingFull() {
         for (Node knoten : getVisibleNodes()) {
             if (knoten.getFernieCount() < maxFerniesPerNode) {
@@ -315,6 +326,11 @@ public class Ring {
         return true;
     }
 
+    /**
+     * Returns whether all nodes owned by a given owner are occupied to maximum fernie capacity.
+     * @param owner the owner
+     * @return true if all nodes by the owner are fully occupied, false otherwise
+     */
     public boolean isRingFull(Owner owner) {
         for (Node node : getNodes(owner)) {
             if (node.getFernieCount() < maxFerniesPerNode) {
@@ -324,7 +340,12 @@ public class Ring {
         return true;
     }
 
-    public Node filter(Predicate<Node> p) {
+    /**
+     * Returns the node that matches a given filter predicate.
+     * @param p the filter predicate
+     * @return the node that matches the criterion
+     */
+    private Node filter(Predicate<Node> p) {
         for (Node node : nodeList) {
             if (p.test(node)) {
                 return node;
@@ -334,6 +355,12 @@ public class Ring {
         return null;
     }
 
+    /**
+     * Returns the node with lowest fernie count by a given owner. If there are several nodes with the same lowest
+     * fernie count, a random node is selected.
+     * @param owner the owner
+     * @return the/a node with the lowest fernie count by the owner
+     */
     public Node getMinNode(Owner owner) {
         Node minimum = getNodes(owner).getFirst();
         for (Node node : getNodes(owner)) {
@@ -342,7 +369,6 @@ public class Ring {
             }
         }
         List<Node> minList = new ArrayList<>();
-        minList.add(minimum);
         for (Node node : getNodes(owner)) {
             if (node.getFernieCount() == minimum.getFernieCount()) {
                 minList.add(node);
@@ -352,6 +378,11 @@ public class Ring {
         return minimum;
     }
 
+    /**
+     * Returns the node with lowest fernie count from a given node list.
+     * @param list the node list
+     * @return the node with the lowest fernie count
+     */
     public Node getMinNode(List<Node> list) {
         if (!list.isEmpty()) {
             Node minimum = list.getFirst();
@@ -362,9 +393,16 @@ public class Ring {
             }
             return minimum;
         }
+        //TODO nullpointer
         return null;
     }
 
+    /**
+     * Returns the node with highest fernie count by a given owner. If there are several nodes with the same highest
+     * fernie count, a random node is selected.
+     * @param owner the owner
+     * @return the/a node with the highest fernie count by the owner
+     */
     public Node getMaxNode(Owner owner) {
         Node maximum = getNodes(owner).getFirst();
         for (Node node : getNodes(owner)) {
@@ -373,7 +411,6 @@ public class Ring {
             }
         }
         List<Node> maxList = new ArrayList<>();
-        maxList.add(maximum);
         for (Node node : getNodes(owner)) {
             if (node.getFernieCount() == maximum.getFernieCount()) {
                 maxList.add(node);
@@ -383,6 +420,11 @@ public class Ring {
         return maximum;
     }
 
+    /**
+     * Returns the node with highest fernie count from a given node list.
+     * @param list the node list
+     * @return the node with the highest fernie count
+     */
     public Node getMaxNode(List<Node> list) {
         if (!list.isEmpty()) {
             Node maximum = list.getFirst();
@@ -394,72 +436,34 @@ public class Ring {
             return maximum;
         }
         return null;
+        //TODO nullpointer
     }
 
+    /**
+     * Returns the average number of fernies per node by a given owner.
+     * @param owner the owner
+     * @return average number of fernies per node
+     */
     public double getAverageFerniesPerNode(Owner owner) {
         return getFernies(owner) / getNodes(owner).size();
     }
 
+    /**
+     * Returns the maximum number of fernies that the agent has available this round, i.e. the new fernies and the sum of fernies on nodes
+     * owned by the agent.
+     * @return maximum number of available fernies
+     */
     public int getMaxFerniesThisRound() {
         return maxFerniesThisRound;
     }
 
-    public List<Node> getLeftHalf() {
-        List<Node> list = new ArrayList<>();
-        int middle = nodeList.length / 2;
-        for (int i = 0; i < middle; i++) {
-            list.add(nodeList[i]);
-        }
-        return list;
-    }
-
-    public List<Node> getRightHalf() {
-        List<Node> list = new ArrayList<>();
-        int middle = (nodeList.length / 2) + 1;
-        for (int i = middle; i < nodeList.length; i++) {
-            list.add(nodeList[i]);
-        }
-        return list;
-    }
 
     /**
-     * Returns the opponent node that is closest to the agent's outermost node on
-     * the left side.
-     * 
-     * @return opponent node
+     * Returns a list of nodes owned by the opponent which have a given numbers of free neighbors.
+     * @param forwards required free nodes forwards
+     * @param backwards required free nodes backwards
+     * @return node list
      */
-    public Node getClosestOpponentLeft() {
-        Node result = null;
-        ListIterator<Node> iterator = getLeftHalf().listIterator(getLeftHalf().size());
-        while (iterator.hasPrevious()) {
-            Node current = iterator.previous();
-            if (current.getOwner() == Owner.THEIRS) {
-                result = current;
-            }
-        }
-        // TODO nullpointer abfangen
-        return result;
-    }
-
-    /**
-     * Returns the opponent node that is closest to the agent's outermost node on
-     * the right side.
-     * 
-     * @return opponent node
-     */
-    public Node getClosestOpponentRight() {
-        Node result = null;
-        Iterator<Node> iterator = getRightHalf().iterator();
-        while (iterator.hasNext()) {
-            Node current = iterator.next();
-            if (current.getOwner() == Owner.THEIRS) {
-                result = current;
-            }
-        }
-        // TODO nullpointer abfangen
-        return result;
-    }
-
     public List<Node> getNodesFreeNeighbors(int forwards, int backwards) {
         List<Node> result = new ArrayList<Node>();
         List<Node> theirs = getNodes(Owner.THEIRS);
@@ -484,6 +488,11 @@ public class Ring {
         return result;
     }
 
+    /**
+     * Returns a list of nodes owned by the opponent which have a given number of free neighbors in one direction.
+     * @param neighbors required free neighbors in one direction
+     * @return node list
+     */
     public List<Node> getNodesFreeNeighbors(int neighbors) {
         List<Node> result = new ArrayList<Node>();
         if (!getNodes(Owner.THEIRS).isEmpty()) {
@@ -502,6 +511,7 @@ public class Ring {
                         freeBackwards = false;
                     }
                 }
+                //Here I use ^ for xor because I do not want to repeat the nodes that are already covered by the method with the same name but two parameters.
                 if (freeForwards ^ freeBackwards) {
                     result.add(node);
                 }
@@ -510,6 +520,10 @@ public class Ring {
         return result;
     }
 
+    /**
+     * Returns the number of fernies that are available if all but one fernie is removed from nodes owned by the agent.
+     * @return available fernies
+     */
     public int calcUnnecessary() {
         int result = 0;
         for (Node node : getNodes(Owner.MINE)) {
@@ -520,12 +534,13 @@ public class Ring {
         return result;
     }
 
-    @Override
-    public String toString() {
-        String string = "";
-        for (Node node : nodeList) {
-            string += node.getNodeNumber() + ";";
-        }
-        return string;
-    }
+    //TODO check if necessary
+//    @Override
+//    public String toString() {
+//        String string = "";
+//        for (Node node : nodeList) {
+//            string += node.getNodeNumber() + ";";
+//        }
+//        return string;
+//    }
 }

@@ -141,7 +141,7 @@ public abstract class Strategy {
         for (Node node : ring.getNodes(Owner.MINE)) {
             int errorCount = 0;
             if (errorCount > ring.getNodes(Owner.MINE).size() / 2) {
-                System.out.println("Something has gone very wrong in the removeUnnecessary method. The method"
+                System.out.println("Something has gone very wrong in the removeAll method. The method"
                         + "was unsuccessful in more than half the cases.");
             }
             try {

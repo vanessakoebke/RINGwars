@@ -3,25 +3,8 @@ package model;
 import java.util.*;
 
 /**
- * Represents the notes that the agents creates during the round and which he
- * accesses during his round to determine his behavior.
- * <p>
- * The notes store the following information:
- * <ul>
- * <li>The current round number (step number)</li>
- * <li>The opponent's strategy</li>
- * <li>The total number of attacks by the opponent so far</li>
- * <li>The number of attacks in the previous round</li>
- * <li>The visibility radius</li>
- * <li>A list of nodes that the agent attacked in the current round (includes
- * direct and border attacks)</li>
- * <li>The relative number of attacks that were blocked by the opponent (blocked
- * attacks / my attacks)</li>
- * <li>The relative number of attacks defended in the previous round</li>
- * <li>The buffer of additional fernies used in attacks (e.g., a buffer of 1.1
- * means that if a node has 10 enemy fernies, the agent attacks with 11
- * fernies)</li>
- * </ul>
+ * Represents the notes that the agents creates during the round and which it
+ * accesses during the round to determine its behavior.
  */
 public class Notes {
     private boolean initialAnalysis;
@@ -88,7 +71,7 @@ public class Notes {
     }
 
     public void setDefensiveness(StrategyOpponent def) {
-        this.strategyOpponent[0] = def;
+        this.strategyOpponent[1] = def;
     }
 
     public void incrementStrategy(StrategyOpponent s) {

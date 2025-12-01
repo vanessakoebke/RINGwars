@@ -31,7 +31,7 @@ public class DrSmartyPants {
             notes.setRatiosThisRound(0, 0, 1, 0, 0);
             return new AttackMax(notes);
         }
-        if (thisRound.getFernies(Owner.THEIRS) > thisRound.getFernies(Owner.MINE) * 2) {
+        if (thisRound.getFernies(Owner.THEIRS) > thisRound.getFernies(Owner.MINE) * 1.2) {
             notes.setRatiosThisRound(0, 0, 0, 0, 1);
             return new Defensive(notes);
         }
@@ -42,11 +42,10 @@ public class DrSmartyPants {
             analyze(thisRound, notes);
         }
         if (notes.isAnalysed()) {
-            return new MixedStrategy(notes);      
+            return new MixedStrategy(notes);
         } else {
             return new FallBack(notes);
         }
-
     }
 
     /**
@@ -83,22 +82,14 @@ public class DrSmartyPants {
          */
         int available = thisRound.getAvailableFernies() + thisRound.calcUnnecessary();
         if (!notes.isAnalysed()) {
-            if (available > thisRound.getFernies(Owner.THEIRS) * 1.1) {
-                notes.setRatiosThisRound(0, 0, 0, 1, 0);
-            } else if (notes.getOpponentStrategy()[0] == StrategyOpponent.AGRESSIVE_2) {
-                notes.setRatiosThisRound(0, 0.5, 0, 0.5, 0);
-            } else if (notes.getOpponentStrategy()[1] == StrategyOpponent.AGRESSIVE_3) {
-                notes.setRatiosThisRound(0, 0.5, 0, 0, 0.5);
-            } else {
-                notes.setRatiosThisRound(0, 0, 0, 1, 0);
-            }
+            notes.setRatiosThisRound(0, 0, 0, 1, 0);
             notes.setAnalysed();
         }
         // Opponent's attacks
         int lastRoundAttacksByOpponent = 0;
         for (Node nodeP : previousRound.getNodes(Owner.MINE)) {
             Node nodeT = thisRound.getNodeByNumber(nodeP.getNodeNumber());
-            if (nodeT.getOwner() != Owner.MINE) {
+            if (nodeT.getOwner() != Owner.MINE && !notes.getAbandoned().contains(nodeT.getNodeNumber())) {
                 lastRoundAttacksByOpponent++;
             }
         }
@@ -119,66 +110,65 @@ public class DrSmartyPants {
             }
         }
         int blockedAttacksLastRoundRel = -1;
-        if (!notes.getMyAttacks().isEmpty()) {
+        if (!notes.getMyAttacks().isEmpty() && blockedAttacksAbs != 0) {
             blockedAttacksLastRoundRel = blockedAttacksAbs / notes.getMyAttacks().size();
         }
+        notes.setBlockedAttacksLastRound(blockedAttacksLastRoundRel);
+
+        if (notes.getBlockedAttacksTotal() != -1 && blockedAttacksLastRoundRel != -1) {
+            notes.setBlockedAttacksTotal(
+                    (blockedAttacksLastRoundRel + notes.getBlockedAttacksTotal() * (notes.getCurrentRound() - 1))
+                    / notes.getCurrentRound());            
+        }
+        notes.initNewRound();
+        
         /*If more than 30% of last
-        * rounds attacks were blocked, the attack buffer will be incremented by 10%
-        * points.
-        */
+         * rounds attacks were blocked, the attack buffer will be incremented by 10%
+         * points.
+         */
         if (blockedAttacksLastRoundRel > 0.3) {
             notes.setAttackBuffer(notes.getAttackBuffer() + 0.1);
         }
-        notes.setBlockedAttacksLastRound(blockedAttacksLastRoundRel);
-        notes.setBlockedAttacksTotal(
-                (blockedAttacksLastRoundRel + notes.getBlockedAttacksTotal() * notes.getCurrentRound() - 1)
-                        / notes.getCurrentRound());
-        notes.initNewRound();
-        
         
         /*
          *  Opponent's aggressiveness
          *  If the opponent attacks > 5% more nodes than on average, the opponent's aggressiveness is incremented.
          *  If the opponent attacks >5% less nodes than on average, the opponent's aggressiveness is decreased.
          */
+        int ringSize =  previousRound.getNodeCount();
         double attacksOpponentAver = totalAttacksOpponent / (notes.getCurrentRound() - 1);
-        if (lastRoundAttacksByOpponent > attacksOpponentAver * 1.05) {
-            if (notes.getAggressiveness() == StrategyOpponent.UNKNOWN) {
+        if (lastRoundAttacksByOpponent > 0 && lastRoundAttacksByOpponent <=ringSize  /8) {
                 notes.setAggressiveness(StrategyOpponent.AGRESSIVE_1);
-            } else {
-                notes.incrementStrategy(notes.getAggressiveness());
-                notes.increaseRatioBy(2, 0.1);
-            }
-        } else if (lastRoundAttacksByOpponent < attacksOpponentAver * 0.95) {
-            if (notes.getAggressiveness() == StrategyOpponent.UNKNOWN) {
-                notes.setAggressiveness(StrategyOpponent.AGRESSIVE_1);
-            } else {
-                notes.decrementStrategy(notes.getAggressiveness());
-                notes.increaseRatioBy(2, 0.1);
-                notes.increaseRatioBy(3, 0.1);
-            }
+            
+        } else if (lastRoundAttacksByOpponent > ringSize /8  && lastRoundAttacksByOpponent < previousRound.getNodeCount() /3) {
+                notes.setAggressiveness(StrategyOpponent.AGRESSIVE_2);
+        } else {
+            notes.setAggressiveness(StrategyOpponent.AGRESSIVE_3);
         }
-        /*
-         *  Opponent's defensiveness
-         *  If the opponent blocks > 5% more attacks than on average, the opponent's defensiveness is incremented.
-         *  If the opponent blocks >5% less attacks than on average, the opponent's defensiveness is decreased.
-         */
-        if (blockedAttacksLastRoundRel > notes.getBlockedAttacksTotal() * 1.05) {
-            if (notes.getDefensiveness() == StrategyOpponent.UNKNOWN) {
-                notes.setDefensiveness(StrategyOpponent.DEFENSIVE_1);
-            } else {
-                notes.incrementStrategy(notes.getDefensiveness());
-                notes.setAttackBuffer(notes.getAttackBuffer() + 0.1);
-            }
-        } else if (blockedAttacksLastRoundRel < notes.getBlockedAttacksTotal() * 0.95) {
-            if (notes.getDefensiveness() == StrategyOpponent.UNKNOWN) {
-                notes.setDefensiveness(StrategyOpponent.DEFENSIVE_1);
-            } else {
-                notes.decrementStrategy(notes.getDefensiveness());
-                notes.setAttackBuffer(notes.getAttackBuffer() - 0.05);
-                // it's intentionally 0.05 because a decrease in defensiveness in one round
-                // might not mean that this behavior will continue => safety buffer
-            }
+    /*
+     * Opponent's defensiveness 
+     * If the opponent blocks > 5% more attacks than on
+     * average, the opponent's defensiveness is incremented. If the opponent blocks
+     * >5% less attacks than on average, the opponent's defensiveness is decreased.
+     */
+    if(blockedAttacksLastRoundRel>notes.getBlockedAttacksTotal()*1.05)
+
+    {
+        if (notes.getDefensiveness() == StrategyOpponent.UNKNOWN) {
+            notes.setDefensiveness(StrategyOpponent.DEFENSIVE_1);
+        } else {
+            notes.incrementStrategy(notes.getDefensiveness());
+            notes.setAttackBuffer(notes.getAttackBuffer() + 0.1);
+        }
+    }else if(blockedAttacksLastRoundRel<notes.getBlockedAttacksTotal()*0.95)
+    {
+        if (notes.getDefensiveness() == StrategyOpponent.UNKNOWN) {
+            notes.setDefensiveness(StrategyOpponent.DEFENSIVE_1);
+        } else {
+            notes.decrementStrategy(notes.getDefensiveness());
+            notes.setAttackBuffer(notes.getAttackBuffer() - 0.05);
+            // it's intentionally 0.05 because a decrease in defensiveness in one round
+            // might not mean that this behavior will continue => safety buffer
         }
     }
-}
+}}

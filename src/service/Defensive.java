@@ -33,7 +33,7 @@ public class Defensive extends Strategy {
             int ferniesPerNode = ferniesForThisStrategy / invisible.size();
             for (Node node : invisible) {
                 try {
-                    node.addFernies(ferniesPerNode);
+                    ring.addFernies(node.getNodeNumber(), ferniesPerNode);
                     output.upsert(node.getNodeNumber(), ferniesPerNode);
                 } catch (FernieException e) {
                     output.upsert(node.getNodeNumber(), e.getFernies());
@@ -51,7 +51,7 @@ public class Defensive extends Strategy {
             List<Node> list = ring.getNodes(Owner.UNCONTROLLED);
             Node node = list.get(new Random().nextInt(list.size()));
             try {
-                node.addFernies(ferniesForThisStrategy);
+                ring.addFernies(node.getNodeNumber(), ferniesForThisStrategy);
                 output.upsert(node.getNodeNumber(), ferniesForThisStrategy);
             } catch (FernieException e) {
                 output.upsert(node.getNodeNumber(), e.getFernies());
