@@ -5,7 +5,15 @@ import java.util.List;
 
 import model.*;
 
+/**
+ * Main class that starts the program and calls upon the various other program components.
+ */
 public class RINGwars_8878390_Koebke_Vanessa {
+    
+    /**
+     * Main method.
+     * @param args the step number and the agent name
+     */
     public static void main(String[] args) {
         if (args.length < 2) {
             System.out.println("Please enter valid arguments: <Step number> <Agent name>. The program terminates now.");
@@ -21,7 +29,7 @@ public class RINGwars_8878390_Koebke_Vanessa {
         String agentName = args[1];
         Ring ring = null;
         try {
-            ring = Util.readStatusFile(agentName, round);
+            ring = Util.readStatusFile(agentName, args[0]);
         } catch (InvalidStatusException e) {
             System.out.println(e.getMessage());
             System.out.println("An empty move file will be created.");
@@ -42,7 +50,7 @@ public class RINGwars_8878390_Koebke_Vanessa {
         // End tracker block
         Notes notes = Util.readNotes(agentName, ring, round);
         Strategy strategy = null;
-        strategy = DrSmartyPants.getStrategy(ring, notes);
+        strategy = TheBrain.getStrategy(ring, notes);
         String stars = "****";
         System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);
         System.out.println(round);
@@ -58,6 +66,7 @@ public class RINGwars_8878390_Koebke_Vanessa {
         }
         Util.writeMove(stringOutput, agentName);
         Util.writeNotes(notes.toString(), agentName);
+        Util.writePrediction(ring);
         System.out.println(stringOutput.toString());
         System.out.println("The program terminated successfully.");
         System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);

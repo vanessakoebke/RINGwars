@@ -1,7 +1,7 @@
 package model;
 
 /**
- * Represents a node on the ring.
+ * Represents a node on the ring. The Node object includes the node number, its owner and the fernies currently placed on it.
  */
 public class Node {
     private final int nodeNumber;
@@ -9,8 +9,8 @@ public class Node {
     private int fernieCount;
 
     /**
-     * Creates a new node. After initializing the node has a final node number, an
-     * owner ({@link Ownership}) and a number of fernies on the node.
+     * Creates a new node. After initializing, the node has a final node number, an
+     * owner ({@link Owner}) and a number of fernies on the node.
      * 
      * @param nodeNumber  the node number
      * @param owner       the owner of the node
@@ -35,7 +35,7 @@ public class Node {
     }
 
     /**
-     * Returns the node number
+     * Returns the node number.
      * 
      * @return node number
      */
@@ -44,7 +44,7 @@ public class Node {
     }
 
     /**
-     * Returns the owner of the node.
+     * Returns the node's owner.
      * 
      * @return node owner
      */
@@ -128,9 +128,5 @@ public class Node {
     public boolean isVisible() {
         return (owner != Owner.UNKNOWN);
     }
-    // TODO entfernen vor Abgabe
-//    @Override
-//    public String toString() {
-//        return knotenNummer + " - " + besitz; 
-//    }
+
 }

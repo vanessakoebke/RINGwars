@@ -534,13 +534,24 @@ public class Ring {
         return result;
     }
 
-    //TODO check if necessary
-//    @Override
-//    public String toString() {
-//        String string = "";
-//        for (Node node : nodeList) {
-//            string += node.getNodeNumber() + ";";
-//        }
-//        return string;
-//    }
+    @Override
+    public String toString() {
+        String string = "";
+        for (Node node : nodeList) {
+            string += node.getFernieCount() + ",";
+        }
+        string += System.lineSeparator();
+        for (Node node: nodeList) {
+            String owner = "";
+            switch (node.getOwner()) {
+            case MINE: owner = "Y"; break;
+            case THEIRS: owner = "T"; break;
+            case UNCONTROLLED: owner = "N"; break;
+            default: owner = "U"; break;
+            }
+            string += owner + ",";
+        }
+        string += System.lineSeparator() + 1 + System.lineSeparator() + 1;
+        return string;
+    }
 }

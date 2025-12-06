@@ -13,6 +13,9 @@ public class Tracker {
     private static int losses;
     static boolean flag;
 
+    /**
+     * Reads the statistics file from the previous round.
+     */
     public static void read() {
         try (BufferedReader br = new BufferedReader(new FileReader("statistics/stats.txt"))) {
             String[] input = new String[3];
@@ -32,16 +35,25 @@ public class Tracker {
         }
     }
 
+    /**
+     * Adds a win to the list and marks the game as concluded.
+     */
     public static void addWin() {
         Tracker.wins++;
         flag = true;
     }
 
+    /**
+     * Adds a loss to the list and marks the game as concluded.
+     */
     public static void addLoss() {
         Tracker.losses++;
         flag = true;
     }
 
+    /**
+     * Writes the new statistics to the stats file.
+     */
     public static void write() {
         File file = new File("statistics/stats.txt");
         file.getParentFile().mkdirs();

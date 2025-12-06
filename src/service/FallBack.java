@@ -1,6 +1,5 @@
 package service;
 
-import java.util.Iterator;
 import java.util.List;
 
 import model.*;
@@ -9,20 +8,31 @@ import model.*;
  * Represents a fallback strategy for when other strategies have produced invalid results.
  */
 public class FallBack extends Strategy {
+    
+    /**
+     * Initializes the Strategy object.
+     * @param notes the notes
+     */
     public FallBack(Notes notes) {
         super(notes);
     }
 
     /**
-     * Returns a very simple output. Uses only the {@link FallBack#distributeUnused} method.
+     * Returns a very simple output by simply distributing all available fernies onto the nodes owned by the agent.
+     * @param ring the ring
+     * @return the output
      */
     @Override
     public Output move(Ring ring) {
         Output output = new Output(ring.getMaxFerniesThisRound());
         try {
-            ring = Util.readStatusFile(notes.getCurrentRound());
+            // As this strategy is called upon when others have failed, the ring is read anew from the step file in order to undo changes from previous strategies.
+            ring = Util.readStatusFile(String.valueOf(notes.getCurrentRound()));
             List<Node> mine = ring.getNodes(Owner.MINE);
             Node node = null;
+            /*
+             * If there are fewer available fernies than nodes owned by the agent, one fernie is placed on all nodes until the agent runs out of fernies.
+             */
             if (ring.getAvailableFernies() < mine.size()) {
                 while (ring.getAvailableFernies() > 0 && !mine.isEmpty()) {
                     try {
@@ -36,6 +46,7 @@ public class FallBack extends Strategy {
                         System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
                     } 
                 }
+                // If there are more available fernies than nodes owned by the agent, the fernies are distributed evenly on all nodes.
             } else  if (mine.size() > 0) {
                 int ferniesPerNode = ring.getAvailableFernies() / mine.size();
                 for (Node n: mine) {
@@ -50,6 +61,7 @@ public class FallBack extends Strategy {
                     } 
                 }
             }
+            // If reading the step file anew generates an InvalidStatusException an empty move file is generated.
         } catch (InvalidStatusException e) {
             output = new EmptyMove(notes).move(ring);
         }
@@ -58,6 +70,7 @@ public class FallBack extends Strategy {
     
     /**
      * Returns the name of the strategy.
+     * @return "Fallback strategy"
      */
     @Override
     public String toString() {

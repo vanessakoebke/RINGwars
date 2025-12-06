@@ -1,7 +1,4 @@
-//Abstrakte Klasse für die verschiedenen Strategien
 package service;
-
-import java.util.List;
 
 import model.*;
 
@@ -31,15 +28,7 @@ public abstract class Strategy {
      */
     public abstract Output move(Ring ring);
 
-    /**
-     * Returns the opponent's strategy based on information from previous rounds if
-     * available.
-     * 
-     * @return opponent's strategy
-     */
-    public static StrategyOpponent getGegnerischeStrategie() {
-        return StrategyOpponent.UNKNOWN;
-    }
+
 
     /**
      * Distributes all unused fernies first on uncontrolled nodes, and, if they were
@@ -102,7 +91,7 @@ public abstract class Strategy {
     /**
      * Leaves on every node owned by the agent only 1 fernie (to hold the node for
      * obtaining the bonus for nodes controlled) and removes the remaining fernies
-     * to maximize the available fernie number.
+     * to maximize the available fernie number for the current round.
      * 
      * @param ring   ring
      * @param output output

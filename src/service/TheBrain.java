@@ -4,9 +4,10 @@ import model.*;
 
 /**
  * Implements the logic to deduce the optimal strategy for the given game
- * history.
+ * history and analyzes and saves relevant information from the previous round.
  */
-public class DrSmartyPants {
+public class TheBrain {
+    
     /**
      * Returns a strategy based on the state of the ring this round, and last round,
      * and the notes.
@@ -14,6 +15,10 @@ public class DrSmartyPants {
      * @return selected strategy
      */
     public static Strategy getStrategy(Ring thisRound, Notes notes) {
+        // Analyze the results of the previous round.
+        if (notes.getCurrentRound() != 1) {
+            analyze(thisRound, notes);
+        }
         /*
          * Simple reflex agent
          * 
@@ -21,26 +26,20 @@ public class DrSmartyPants {
         if (thisRound == null || thisRound.getAvailableFernies() == 0) {
             return new EmptyMove(notes);
         }
-        int available = thisRound.getAvailableFernies() + thisRound.calcUnnecessary();
         if (!thisRound.isOpponentVisible()) {
-            notes.setRatiosThisRound(1, 0, 0, 0, 0);
             return new Expansion(notes);
         }
+        int available = thisRound.getAvailableFernies() + thisRound.calcUnnecessary();
         if (thisRound.getNodes(Owner.THEIRS).size() < 5
                 && available > thisRound.getMaxNode(Owner.THEIRS).getFernieCount() * notes.getAttackBuffer() * 1.1) {
-            notes.setRatiosThisRound(0, 0, 1, 0, 0);
             return new AttackMax(notes);
         }
-        if (thisRound.getFernies(Owner.THEIRS) > thisRound.getFernies(Owner.MINE) * 1.2) {
-            notes.setRatiosThisRound(0, 0, 0, 0, 1);
+        if (thisRound.getFernies(Owner.THEIRS) > thisRound.getFernies(Owner.MINE) * 1.5) {
             return new Defensive(notes);
         }
         /*
          * Learning agent
          */
-        if (notes.getCurrentRound() != 1) {
-            analyze(thisRound, notes);
-        }
         if (notes.isAnalysed()) {
             return new MixedStrategy(notes);
         } else {
@@ -49,40 +48,35 @@ public class DrSmartyPants {
     }
 
     /**
-     * Returns the ring from a given round.
-     * 
-     * @param agentName agent name
-     * @param round     round for which the ring will be retrieved
-     * @return
+     * Returns the ring from the previous round in the state it was left by my agent.
+     * @return the ring prediction from the previous round
      */
-    private static Ring getPreviousRound(int round) {
-        Ring ringRound;
+    private static Ring getPreviousRound() {
+        Ring ringPrediction;
         try {
-            ringRound = Util.readStatusFile(round);
+            ringPrediction = Util.readStatusFile("prediction");
         } catch (InvalidStatusException e) {
             e.printStackTrace();
             return null;
         }
-        return ringRound;
+        return ringPrediction;
     }
 
     /**
-     * Analyzes the notes and writes updated information back.
+     * Analyzes the notes and writes back updated information.
      * 
      * @param notes notes
      */
     public static void analyze(Ring thisRound, Notes notes) {
-        Ring previousRound = getPreviousRound(notes.getCurrentRound() - 1);
-        notes.setPrevious(previousRound);
+        Ring previousRound = getPreviousRound();
         if (previousRound == null) {
             return;
         }
         /*
-         * Initialize ratios for round
+         * Initialize ratios for round 1
          */
-        int available = thisRound.getAvailableFernies() + thisRound.calcUnnecessary();
         if (!notes.isAnalysed()) {
-            notes.setRatiosThisRound(0, 0, 0, 1, 0);
+            notes.setRatiosThisRound(0, 0, 0, 1, 0); //TODO ratios prüfen
             notes.setAnalysed();
         }
         // Opponent's attacks
@@ -109,8 +103,9 @@ public class DrSmartyPants {
                 blockedAttacksAbs++;
             }
         }
+        //To differentiate between "I have not attacked" and "No attacks were blocked" I use -1 for the first case and 0 for the second.
         int blockedAttacksLastRoundRel = -1;
-        if (!notes.getMyAttacks().isEmpty() && blockedAttacksAbs != 0) {
+        if (!notes.getMyAttacks().isEmpty() ) {
             blockedAttacksLastRoundRel = blockedAttacksAbs / notes.getMyAttacks().size();
         }
         notes.setBlockedAttacksLastRound(blockedAttacksLastRoundRel);
@@ -132,17 +127,31 @@ public class DrSmartyPants {
         
         /*
          *  Opponent's aggressiveness
-         *  If the opponent attacks > 5% more nodes than on average, the opponent's aggressiveness is incremented.
-         *  If the opponent attacks >5% less nodes than on average, the opponent's aggressiveness is decreased.
+         *  If the opponent attacks less than 1/8 of my nodes, their aggressiveness is rated the lowest level. If they attack between 1/8 and 1/3
+         *  they are rated on the middle level. If they attack more than 1/3, they are rated the highest aggressiveness level.
          */
-        int ringSize =  previousRound.getNodeCount();
-        double attacksOpponentAver = totalAttacksOpponent / (notes.getCurrentRound() - 1);
-        if (lastRoundAttacksByOpponent > 0 && lastRoundAttacksByOpponent <=ringSize  /8) {
+        if (lastRoundAttacksByOpponent > 0 && lastRoundAttacksByOpponent <=previousRound.getNodes(Owner.MINE).size()  /8) {
+            switch (notes.getAggressiveness()) {
+            case UNKNOWN:  notes.increaseRatioBy(1, 0.05); break;
+            default: ;
+            }
                 notes.setAggressiveness(StrategyOpponent.AGRESSIVE_1);
             
-        } else if (lastRoundAttacksByOpponent > ringSize /8  && lastRoundAttacksByOpponent < previousRound.getNodeCount() /3) {
+        } else if (lastRoundAttacksByOpponent > previousRound.getNodes(Owner.MINE).size() /8  
+                && lastRoundAttacksByOpponent < previousRound.getNodes(Owner.MINE).size() /3) {
+            switch (notes.getAggressiveness()) {
+            case UNKNOWN:  notes.increaseRatioBy(1, 0.1); break;
+            case AGRESSIVE_1: notes.increaseRatioBy(1, 0.05); break;
+            default: ;
+            }
                 notes.setAggressiveness(StrategyOpponent.AGRESSIVE_2);
         } else {
+            switch (notes.getAggressiveness()) {
+            case UNKNOWN:  notes.increaseRatioBy(1, 0.15); break;
+            case AGRESSIVE_1: notes.increaseRatioBy(1, 0.1); break;
+            case AGRESSIVE_2: notes.increaseRatioBy(1, 0.05);
+            default: ;
+            }
             notes.setAggressiveness(StrategyOpponent.AGRESSIVE_3);
         }
     /*

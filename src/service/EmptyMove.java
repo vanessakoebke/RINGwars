@@ -7,12 +7,17 @@ import model.*;
  */
 public class EmptyMove extends Strategy {
 
+    /**
+     * Initializes the Strategy object.
+     * @param notes
+     */
     public EmptyMove(Notes notes) {
         super(notes);
     }
 
     /**
      * Returns null due to invalid step file.
+     * @param the ring
      * @return null
      */
     @Override

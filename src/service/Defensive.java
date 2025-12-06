@@ -5,11 +5,24 @@ import java.util.Random;
 
 import model.*;
 
+/**
+ * Represents a defensive strategy that tries to elude the opponent's attacks.
+ */
 public class Defensive extends Strategy {
+    
+    /**
+     * Initializes the Strategy object.
+     * @param notes the notes
+     */
     public Defensive(Notes notes) {
         super(notes);
     }
 
+    /**
+     * Executes the Defensive strategy with 100% of the available fernies and returns the output that will be written into the move file.
+     * @param ring the ring
+     * @return the output
+     */
     @Override
     public Output move(Ring ring) {
         Output output = new Output(ring.getMaxFerniesThisRound());
@@ -19,6 +32,13 @@ public class Defensive extends Strategy {
         return output;
     }
 
+    /**
+     * Executes the Defensive strategy with a given percentage of the available fernies and updates the output.
+     * @param ring the ring
+     * @param output the output
+     * @param ratio the percentage
+     * @return the output
+     */
     public Output move(Ring ring, Output output, double ratio) {
         if (ratio == 0) {
             return output;
@@ -63,6 +83,10 @@ public class Defensive extends Strategy {
         return output;
     }
     
+    /**
+     * Returns the name of the Strategy as String.
+     * @return "Defensive"
+     */
     @Override
     public String toString() {
         return "Defensive";

@@ -13,16 +13,16 @@ public class Util {
     private static String agentNamePerm;
 
     /**
-     * Reads the current step file.
+     * Reads the step file with a given number.
      * 
      * @param agentName name of the agent (directory)
      * @param step      step number
      * @return ring
      * @throws InvalidStatusException if the step file is invalid
      */
-    public static Ring readStatusFile(String agentName, int step) throws InvalidStatusException {
+    public static Ring readStatusFile(String agentName, String step) throws InvalidStatusException {
         agentNamePerm = agentName;
-        if (step == 0) {
+        if (step == null) {
             return null;
         }
         System.out.println(step);
@@ -105,7 +105,14 @@ public class Util {
         return new Ring(nodeList, maxFerniesPerNode, availableFernies);
     }
 
-    public static Ring readStatusFile(int step) throws InvalidStatusException {
+    /**
+     * Reads the step file with a given name.
+     * 
+     * @param step      step number
+     * @return ring
+     * @throws InvalidStatusException if the step file is invalid
+     */
+    public static Ring readStatusFile(String step) throws InvalidStatusException {
         return readStatusFile(agentNamePerm, step);
     }
 
@@ -136,6 +143,23 @@ public class Util {
             System.out.println("The move file could not be created (see StackTrace). The program terminates now.");
             e.printStackTrace();
             System.exit(0);
+        }
+    }
+    
+    /**
+     * Writes a prediction step file into the agents directory with the state of the ring as the agents leaves it in the current round.
+     * @param ring the ring after the agent's moves have been carried out
+     */
+    public static void writePrediction(Ring ring) {
+        File file = new File(agentNamePerm, "prediction.txt");
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+            file.createNewFile();
+            if (ring != null) {
+                bw.write(ring.toString());
+            }
+        } catch (IOException e) {
+            System.out.println("The prediction file could not be created (see StackTrace).");
+            e.printStackTrace();
         }
     }
 

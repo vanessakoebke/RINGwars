@@ -4,11 +4,24 @@ import java.util.*;
 
 import model.*;
 
+/**
+ * Represents an expansive strategy that tries to occupy as many nodes as possible.
+ */
 public class Expansion extends Strategy {
+    
+    /**
+     * Initializes the Strategy object.
+     * @param notes the notes
+     */
     public Expansion(Notes notes) {
         super(notes);
     }
 
+    /**
+     * Executes the Expansion strategy with 100% of the available fernies and returns the output that will be written into the move file.
+     * @param ring the ring
+     * @return the output
+     */
     @Override
     public Output move(Ring ring){
         Output output = new Output(ring.getMaxFerniesThisRound());
@@ -18,6 +31,13 @@ public class Expansion extends Strategy {
        return output;
     }
     
+    /**
+     * Executes the Expansion strategy with a given percentage of the available fernies and updates the output.
+     * @param ring the ring
+     * @param output the output
+     * @param ratio the percentage
+     * @return the output
+     */
     public Output move(Ring ring, Output output, double ratio) {
         if (ratio == 0) {
             return output;
@@ -88,7 +108,10 @@ public class Expansion extends Strategy {
     }
     
 
-    
+    /**
+     * Returns the name of the Strategy as String.
+     * @return "Expansion"
+     */
     @Override
     public String toString() {
         return "Expansion";

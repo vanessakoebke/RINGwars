@@ -8,7 +8,6 @@ import java.util.*;
  */
 public class Notes {
     private boolean initialAnalysis;
-    private Ring previous = null;
     private int currentRound;
     private StrategyOpponent[] strategyOpponent;
     private int totalAttacksByOpponent;
@@ -50,30 +49,41 @@ public class Notes {
     }
 
     /**
-     * Returns the opponent's strategy.
-     * 
-     * @return opponent's strategy
+     * Returns the opponent's aggressiveness (low, middle or high).
+     * @return opponent's aggressiveness
      */
-    public StrategyOpponent[] getOpponentStrategy() {
-        return strategyOpponent;
-    }
-
     public StrategyOpponent getAggressiveness() {
         return this.strategyOpponent[0];
     }
 
+    /**
+     * Sets the opponent's aggressiveness (low, middle or high).
+     * @param agr opponent's aggressiveness
+     */
     public void setAggressiveness(StrategyOpponent agr) {
         this.strategyOpponent[0] = agr;
     }
 
+    /**
+     * Returns the opponent's defensiveness (low, middle or high).
+     * @return opponent's defensiveness
+     */
     public StrategyOpponent getDefensiveness() {
         return this.strategyOpponent[1];
     }
 
+    /**
+     * Sets the opponent's defensiveness (low, middle or high).
+     * @param def opponent's defensiveness
+     */
     public void setDefensiveness(StrategyOpponent def) {
         this.strategyOpponent[1] = def;
     }
 
+    /**
+     * Increments the opponent's aggressiveness or defensiveness by one level.
+     * @param s aggressiveness or defensiveness
+     */
     public void incrementStrategy(StrategyOpponent s) {
         switch (s) {
         case AGRESSIVE_1:
@@ -93,6 +103,10 @@ public class Notes {
         }
     }
 
+    /**
+     * Decrements the opponent's aggressiveness or defensiveness by one level.
+     * @param s aggressiveness or defensiveness
+     */
     public void decrementStrategy(StrategyOpponent s) {
         switch (s) {
         case AGRESSIVE_1:
@@ -111,18 +125,34 @@ public class Notes {
         }
     }
 
+    /**
+     * Returns the total number of attacks the opponent has carried out in this game.
+     * @return total number of attacks.
+     */
     public int getOpponentAttacksTotal() {
         return totalAttacksByOpponent;
     }
 
+    /**
+     * Returns the nodes that my agent has abandoned during the previous round.
+     * @return abandoned nodes
+     */
     public List<Integer> getAbandoned() {
         return this.abandoned;
     }
     
+    /**
+     * Returns the calculated visibility range.
+     * @return the visibility range
+     */
     public int getVisibility() {
         return visibilityRadius;
     }
 
+    /**
+     * Returns the nodes that my agent has attacked during the previous round.
+     * @return
+     */
     public List<Integer> getMyAttacks() {
         return myAttacksThisRound;
     }
@@ -138,10 +168,18 @@ public class Notes {
         }
     }
     
+    /**
+     * Adds a node number to list of nodes that my agent has abandoned this round.
+     * @param nodeNumber
+     */
     public void addAbandoned(int nodeNumber) {
         this.abandoned.add(nodeNumber);
     }
 
+    /**
+     * Returns the current attack buffer.
+     * @return attack buffer
+     */
     public double getAttackBuffer() {
         return attackBuffer;
     }
@@ -155,53 +193,76 @@ public class Notes {
         this.attackBuffer = attackBuffer;
     }
 
+    /**
+     * Returns the relative number of attacks that were blocked by the opponent during this game.
+     * @return relative number of blocked attacks
+     */
     public double getBlockedAttacksTotal() {
         return blockedAttacksTotal;
     }
 
+    /**
+     * Returns the relative number of attacks that were blocked by the opponent during the previous round.
+     * @return relative number of blocked attacks
+     */
     public double getBlockedAttacksLastRound() {
         return blockedAttacksLastRound;
     }
 
+    /**
+     * Returns the current round number.
+     * @return current round
+     */
     public int getCurrentRound() {
         return currentRound;
     }
 
+    /**
+     * Returns the total number of attacks by the opponent during the current game.
+     * @return total number of attacks
+     */
     public int getTotalAttacksByOpponent() {
         return totalAttacksByOpponent;
     }
 
+    /**
+     * Sets the total number of attacks by the opponent during the current game.
+     * @param totalAttacksByOpponent total number of attacks
+     */
     public void setTotalAttacksByOpponent(int totalAttacksByOpponent) {
         this.totalAttacksByOpponent = totalAttacksByOpponent;
     }
 
-    public int getLastRoundAttacksByOpponent() {
-        return lastRoundAttacksByOpponent;
-    }
-
+    /**
+     * Sets the number of attacks by the opponent during the previous round.
+     * @param lastRoundAttacksByOpponent attacks during the previous round
+     */
     public void setLastRoundAttacksByOpponent(int lastRoundAttacksByOpponent) {
         this.lastRoundAttacksByOpponent = lastRoundAttacksByOpponent;
     }
 
+    /**
+     * Sets the relative number of attacks that were blocked by the opponent during the current game. 
+     * @param blockedAttacksTotal blocked attacks
+     */
     public void setBlockedAttacksTotal(double blockedAttacksTotal) {
         this.blockedAttacksTotal = blockedAttacksTotal;
     }
 
+    /**
+     * Sets the relative number of attacks that were blocked by the opponent during the previous round.
+     * @param blockedAttacksLastRound blocked attacks
+     */
     public void setBlockedAttacksLastRound(double blockedAttacksLastRound) {
         this.blockedAttacksLastRound = blockedAttacksLastRound;
     }
 
+    /**
+     * Initializes the notes for a new round after the analysis by emptying the list of abandoned and attacked notes of the previous round.
+     */
     public void initNewRound() {
         myAttacksThisRound = new ArrayList<Integer>();
         abandoned = new ArrayList<Integer>();
-    }
-
-    public void setPrevious(Ring previous) {
-        this.previous = previous;
-    }
-
-    public Ring getPrevious() {
-        return previous;
     }
 
     /**
@@ -248,6 +309,10 @@ public class Notes {
     }
     //@formatter:on
 
+    /**
+     * Returns whether the initial analysis of the previous round has been successful.
+     * @return true if the initial analysis was successful, false otherwise
+     */
     public boolean isAnalysed() {
         return initialAnalysis;
     }
@@ -274,14 +339,26 @@ public class Notes {
         }
     }
 
+    /**
+     * Returns the mixed strategy ratios of the current round.
+     * @return ratios
+     */
     public double[] getRatiosThisRound() {
         return ratiosThisRound;
     }
     
+    /**
+     * Returns the mixed strategy ratios of the previous round.
+     * @return ratios
+     */
     public double[] getRatiosLastRound() {
         return ratiosLastRound;
     }
 
+    /**
+     * Checks if the calculated ratios are not superior to 1.
+     * @return true if the sum of the ratios is <= 1, false otherwise
+     */
     private boolean checkRatios() {
         // TODO entfernen vor Abgabe
         if (ratiosThisRound[0] + ratiosThisRound[1] + ratiosThisRound[2] + ratiosThisRound[3] + ratiosThisRound[4] < 1) {
@@ -290,6 +367,11 @@ public class Notes {
         return ratiosThisRound[0] + ratiosThisRound[1] + ratiosThisRound[2] + ratiosThisRound[3] + ratiosThisRound[4] <= 1;
     }
 
+    /**
+     * Increases the ratio of a given strategy by a given value for the mixed strategy case.
+     * @param strategy the strategy
+     * @param increase the increase
+     */
     public void increaseRatioBy(int strategy, double increase) {
         switch (strategy) {
         /*
@@ -370,6 +452,90 @@ public class Notes {
             System.out.println("Deine Ratios stimmen nicht (increase).");
         }
     }
+    
+    //TODO prüfen ob nötig
+    public void decreaseRatioBy(int strategy, double decrease) {
+        switch (strategy) {
+        /*
+         * Expansion
+         */
+        case 0:
+            if (ratiosThisRound[0] >= decrease) {
+                ratiosThisRound[0] -= decrease;
+            }
+            if (ratiosThisRound[4] >= decrease) {
+                ratiosThisRound[4] -= decrease;
+            } else if (ratiosThisRound[1] >= decrease) {
+                ratiosThisRound[1] -= decrease;
+            } else if (ratiosThisRound[2] >= decrease) {
+                ratiosThisRound[2] -= decrease;
+            } else if (ratiosThisRound[3] >= decrease) {
+                ratiosThisRound[3] -= decrease;
+            } else {
+                return;
+            }
+        //Consolidation    
+        case 1:
+            if (ratiosThisRound[2] >= decrease) {
+                ratiosThisRound[2] -= decrease;
+            } else if (ratiosThisRound[3] >= decrease) {
+                ratiosThisRound[3] -= decrease;
+            } else if (ratiosThisRound[0] >= decrease) {
+                ratiosThisRound[0] -= decrease;
+            } else if (ratiosThisRound[4] >= decrease) {
+                ratiosThisRound[4] -= decrease;
+            } else {
+                return;
+            }
+            ratiosThisRound[1] += decrease;
+        //AttackMax
+        case 2:
+            if (ratiosThisRound[4] >= decrease) {
+                ratiosThisRound[4] -= decrease;
+            } else if (ratiosThisRound[1] >= decrease) {
+                ratiosThisRound[1] -= decrease;
+            } else if (ratiosThisRound[0] >= decrease) {
+                ratiosThisRound[0] -= decrease;
+            } else if (ratiosThisRound[3] >= decrease) {
+                ratiosThisRound[3] -= decrease;
+            } else {
+                return;
+            }
+            ratiosThisRound[2] += decrease;
+        //AttackMin
+        case 3:
+            if (ratiosThisRound[4] >= decrease) {
+                ratiosThisRound[4] -= decrease;
+            } else if (ratiosThisRound[1] >= decrease) {
+                ratiosThisRound[1] -= decrease;
+            } else if (ratiosThisRound[0] >= decrease) {
+                ratiosThisRound[0] -= decrease;
+            } else if (ratiosThisRound[2] >= decrease) {
+                ratiosThisRound[2] -= decrease;
+            } else {
+                return;
+            }
+            ratiosThisRound[2] += decrease;
+        //Defensive
+        case 4:
+            if (ratiosThisRound[2] >= decrease) {
+                ratiosThisRound[2] -= decrease;
+            } else if (ratiosThisRound[3] >= decrease) {
+                ratiosThisRound[3] -= decrease;
+            } else if (ratiosThisRound[0] >= decrease) {
+                ratiosThisRound[0] -= decrease;
+            } else if (ratiosThisRound[1] >= decrease) {
+                ratiosThisRound[1] -= decrease;
+            } else {
+                return;
+            }
+            ratiosThisRound[4] += decrease;
+        }
+        // TODO entfernen vor Abgabe
+        if (!checkRatios()) {
+            System.out.println("Deine Ratios stimmen nicht (increase).");
+        }
+    }
     // TODO implementieren
 //    public void decreaseRatio (String strategy) {
 //        switch(strategy){
@@ -424,6 +590,9 @@ public class Notes {
 //        }
 //    }
 
+    /**
+     * Sets the value of initial analysis to true.
+     */
     public void setAnalysed() {
         initialAnalysis = true;        
     }
