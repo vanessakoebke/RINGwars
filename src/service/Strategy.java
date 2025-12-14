@@ -43,7 +43,6 @@ public abstract class Strategy {
          * this is the most efficient (bonus fernies per occupied node).
          */
         int availableFernies;
-        System.out.println("Unused fernies are being distributed.");
         output = new Expansion(notes).move(ring, output, 1);
         /*
          * If there are no more uncontrolled nodes, the functions proceeds with filling
@@ -145,7 +144,6 @@ public abstract class Strategy {
                 continue;
             }
         }
-        System.out.println("Available fernies this round: " + ring.getAvailableFernies());
     }
     
     /**

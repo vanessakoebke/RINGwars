@@ -6,7 +6,7 @@ import model.*;
  * Implements the logic to deduce the optimal strategy for the given game
  * history and analyzes and saves relevant information from the previous round.
  */
-public class TheBrain {
+public class Analyzer {
     
     /**
      * Returns a strategy based on the state of the ring this round, and last round,
@@ -67,7 +67,7 @@ public class TheBrain {
      * 
      * @param notes notes
      */
-    public static void analyze(Ring thisRound, Notes notes) {
+    private static void analyze(Ring thisRound, Notes notes) {
         Ring previousRound = getPreviousRound();
         if (previousRound == null) {
             return;

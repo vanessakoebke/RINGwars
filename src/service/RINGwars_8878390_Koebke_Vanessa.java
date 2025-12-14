@@ -50,7 +50,7 @@ public class RINGwars_8878390_Koebke_Vanessa {
         // End tracker block
         Notes notes = Util.readNotes(agentName, ring, round);
         Strategy strategy = null;
-        strategy = TheBrain.getStrategy(ring, notes);
+        strategy = Analyzer.getStrategy(ring, notes);
         String stars = "****";
         System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);
         System.out.println(round);
