@@ -4,16 +4,13 @@ import java.util.*;
 import java.util.function.Predicate;
 
 /**
- * Represents the current status of the playing field and associated
- * informations.
+ * Represents the current status of the playing field and associated informations.
  * <p>
  * <ul>
  * <li>the node list</li>
  * <li>the maximum number of fernies per node (final)</li>
- * <li>the numbers of fernies that are currently free and ready to be
- * placed</li>
- * <li>the maximum number of fernies that the agent has available this round
- * (new fernies + all fernies on nodes owned by the agent)</li>
+ * <li>the numbers of fernies that are currently free and ready to be placed</li>
+ * <li>the maximum number of fernies that the agent has available this round (new fernies + all fernies on nodes owned by the agent)</li>
  * </ul>
  */
 public class Ring {
@@ -23,7 +20,7 @@ public class Ring {
      */
     private Node[] nodeList;
     /*
-     * Maximum amount of fernies per node. Variable is final because this number
+     * Maximum amount of fernies per node. Attribute is final because this number
      * doesn't change over the course of the game.
      */
     private final int maxFerniesPerNode;
@@ -37,7 +34,7 @@ public class Ring {
      * Stores the maximum number of fernies available to the agent (number of new
      * fernies + number of all fernies the agent had at the beginning of the round).
      * This value is final, since no additional fernies can be gained during a turn.
-     * This attribute is used exclusively to be passed to the output (@see Ausgabe)
+     * This attribute is used exclusively to be passed to the output (@see Output)
      * so it can verify that the sum of fernies in the output does not exceed the
      * maximum number of fernies available in a given round.
      */
@@ -89,8 +86,8 @@ public class Ring {
     }
 
     /**
-     * Returns the list of nodes that invisible to the opponent. The visibility used is the one calculated at the beginning of each
-     * round by {@link Util}.
+     * Returns the list of nodes that are invisible to the opponent. The visibility used is the one calculated at the beginning of each
+     * round by { @link Util }.
      * @param visibility the visibility radius
      * @return nodes that are invisible to the opponent
      */
@@ -106,7 +103,7 @@ public class Ring {
 
     /**
      * Returns the list of nodes that visible to the opponent. The visibility used is the one calculated at the beginning of each
-     * round by {@link Util}.
+     * round by { @link Util }.
      * @param visibility the visibility radius
      * @return nodes that are visible to the opponent
      */
@@ -122,7 +119,7 @@ public class Ring {
 
     /**
      * Returns whether a given node is visible for the opponent. The visibility used is the one calculated at the beginning of each
-     * round by {@link Util}.
+     * round by { @link Util }.
      * @param node the node
      * @param visibility the visibility radius
      * @return true if the node is visible for the opponent, false otherwise
@@ -142,7 +139,7 @@ public class Ring {
     /**
      * Returns whether the opponent is currently visible.
      * 
-     * @return {@code true} if opponent is visible, {@code false} otherwise
+     * @return { @code true } if opponent is visible, { @code false } otherwise
      */
     public boolean isOpponentVisible() {
         boolean result = false;
@@ -218,7 +215,7 @@ public class Ring {
      * available fernies is decremented accordingly.
      * <p>
      * If the targeted node does not belong to the opponent or another invalid move
-     * is attempted, a {@link MoveException} is thrown.
+     * is attempted, a { @link MoveException } is thrown.
      * <p>
      * If the number of fernies placed on the node minus the opponent's fernies
      * exceeds the maximum number of fernies allowed per node, the attack is carried
@@ -230,10 +227,13 @@ public class Ring {
      */
     public void attack(int nodeNumber, int fernies) throws MoveException {
         Node node = filter(x -> x.getNodeNumber() == nodeNumber);
-        if (node.getOwner() != Owner.THEIRS) {
-            // TODO entfernen vor Abgabe
+        if (node == null) {
             throw new MoveException(
-                    "Du versuchst einen Knoten anzugreifen, der nicht dem Gegner gehört. Verwende die addFernies-Funktion.");
+                    "Node does not exist.");
+        }
+        if (node.getOwner() != Owner.THEIRS) {
+            throw new MoveException(
+                    "You are trying to attack a node that does not belong to the opponent. Use the addFernie method instead.");
             /*
              * If the node belongs to the opponent and the number of fernies to be placed
              * minus the number of the opponent's fernies on the node exceeds the maximum
@@ -255,7 +255,7 @@ public class Ring {
      * Places fernies on a node. The number of available fernies is decremented
      * accordingly.
      * <p>
-     * If an invalid move is attempted, a {@link MoveException} is thrown.
+     * If an invalid move is attempted, a { @link MoveException } is thrown.
      * <p>
      * If the number of fernies to be placed on the node plus the fernies already
      * present on the node exceeds the maximum number of fernies allowed per node,
@@ -272,10 +272,14 @@ public class Ring {
          * of fernies per node, there will be added only enough fernies to reach the maximum allowed number. This number of
          * actually placed fernies is returned through a FernieException.
          */
+        if (node == null) {
+            throw new MoveException(
+                    "Node does not exist.");
+        }
         if (node.getOwner() == Owner.THEIRS) {
             // TODO entferne vor Abgabe
             throw new MoveException(
-                    "Du versuchst Fernies auf einen gegnerischen Knoten zu legen. Verwende die greifeAn-Funktion.");
+                    "You are trying to place fernies on an opponent node. Use the attack method instead.");
         } else if (fernies + node.getFernieCount() > maxFerniesPerNode) {
             int ferniesNew = maxFerniesPerNode - node.getFernieCount();
             node.addFernies(ferniesNew);
@@ -293,16 +297,18 @@ public class Ring {
      * <p>
      * If an attempt is made to remove fernies from a node not owned by the agent,
      * or to remove more fernies than are present on the node, a
-     * {@link MoveException} is thrown.
+     * { @link MoveException } is thrown.
      *
      * @param nodeNumber the number of the node from which fernies should be removed
      * @param fernies    the number of fernies to remove
-     * @throws MoveException if an invalid move is performed
+     * @throws MoveException thrown if an invalid move is performed
      */
     public void removeFernies(int nodeNumber, int fernies) throws MoveException {
         Node node = filter(x -> x.getNodeNumber() == nodeNumber);
-        node.removeFernies(fernies);
-        this.availableFernies += fernies;
+        if (node != null) {
+            node.removeFernies(fernies);
+            this.availableFernies += fernies;
+        }
     }
 
     /**
@@ -313,18 +319,6 @@ public class Ring {
         return (float) getVisibleNodes().size() / nodeList.length;
     }
 
-    /**
-     * Returns whether all visible nodes on the ring are occupied to maximum fernie capacity.
-     * @return true if all visible nodes are fully occupied, false otherwise
-     */
-    public boolean isRingFull() {
-        for (Node knoten : getVisibleNodes()) {
-            if (knoten.getFernieCount() < maxFerniesPerNode) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     /**
      * Returns whether all nodes owned by a given owner are occupied to maximum fernie capacity.
@@ -351,7 +345,6 @@ public class Ring {
                 return node;
             }
         }
-        // TODO Nullpointer exception abfangen
         return null;
     }
 
@@ -374,7 +367,9 @@ public class Ring {
                 minList.add(node);
             }
         }
-        minimum = minList.get(new Random().nextInt(minList.size()));
+        if (!minList.isEmpty()) {
+            minimum = minList.get(new Random().nextInt(minList.size()));
+        }
         return minimum;
     }
 
@@ -393,7 +388,6 @@ public class Ring {
             }
             return minimum;
         }
-        //TODO nullpointer
         return null;
     }
 
@@ -416,7 +410,9 @@ public class Ring {
                 maxList.add(node);
             }
         }
-        maximum = maxList.get(new Random().nextInt(maxList.size()));
+        if (!maxList.isEmpty()) {
+            maximum = maxList.get(new Random().nextInt(maxList.size()));
+        }
         return maximum;
     }
 
@@ -436,16 +432,6 @@ public class Ring {
             return maximum;
         }
         return null;
-        //TODO nullpointer
-    }
-
-    /**
-     * Returns the average number of fernies per node by a given owner.
-     * @param owner the owner
-     * @return average number of fernies per node
-     */
-    public double getAverageFerniesPerNode(Owner owner) {
-        return getFernies(owner) / getNodes(owner).size();
     }
 
     /**
@@ -469,6 +455,7 @@ public class Ring {
         List<Node> theirs = getNodes(Owner.THEIRS);
         for (Node node : theirs) {
             boolean free = true;
+            //I use modulo in order to avoid over- or underflow when checking the next or previous node.
             for (int i = 1; i <= forwards; i++) {
                 int next = (node.getNodeNumber() + i) % nodeList.length;
                 if (getNodeByNumber(next).getOwner() != Owner.UNCONTROLLED) {
@@ -499,6 +486,7 @@ public class Ring {
             for (Node node : getNodes(Owner.THEIRS)) {
                 boolean freeForwards = true;
                 boolean freeBackwards = true;
+                //I use modulo in order to avoid over- or underflow when checking the next or previous node.
                 for (int i = 1; i <= neighbors; i++) {
                     int next = (node.getNodeNumber() + i) % nodeList.length;
                     if (getNodeByNumber(next).getOwner() != Owner.UNCONTROLLED) {
@@ -533,7 +521,29 @@ public class Ring {
         }
         return result;
     }
+    
+    /**
+     * This method checks whether the nodes on either side of a given node are occupied by the opponent. This serves to avoid unintended edge battles.
+     * @param ring ring
+     * @param node node which should be checked for neighbors
+     * @return true if opponent occupies neighboring nodes, else false
+     */
+     public boolean checkForNeighbors(Node node) {
+         int next = (node.getNodeNumber() + 1) % getNodes().length;
+         int prev = (node.getNodeNumber() - 1 + getNodes().length) % getNodes().length;
+        if (getNodeByNumber(next).getOwner() == Owner.THEIRS ||
+                getNodeByNumber(prev).getOwner() == Owner.THEIRS ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+     /**
+      * Returns the ring as String in the format of a step file. This method is used to save the ring at the end of a turn in the prediction file.
+      * 
+      * @return ring as String
+      */
     @Override
     public String toString() {
         String string = "";

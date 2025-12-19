@@ -51,6 +51,8 @@ public class Node {
     public Owner getOwner() {
         return owner;
     }
+    
+    //There is no setter for the owner attribute, because it should only be changed through the add or remove fernie methods.
 
     /**
      * Returns the number of fernies on the node.
@@ -64,12 +66,14 @@ public class Node {
     /**
      * Adds a given number of fernies to the node.
      * <p>
-     * If the node belongs to the agent or is uncontrolled, the new number fernies
+     * If the node belongs to the agent or is uncontrolled, the new number of fernies
      * are added to the previous number fernies. 
+     * <p>
      * If the node belongs to the opponent, it is checked whether the added fernie number is higher than the opponent's number of
      * fernies. If so, the previous fernie number is subtracted from the newly added
-     * ones and this value becomes the new fernie count of the node. (Direct attack mechanic)
-     * If the node is not visible, a {@link MoveException} is thrown. 
+     * ones and this value becomes the new fernie count of the node (direct attack mechanic). Otherwise a {@link MoveException} is thrown.
+     * <p>
+     * If the node is invisible, a {@link MoveException} is thrown. 
      * 
      * @param fernies fernies to be added
      * @throws MoveException thrown if the move is invalid
@@ -78,15 +82,15 @@ public class Node {
         if (owner == Owner.MINE) {
             this.fernieCount += fernies;
         } else if (owner == Owner.UNCONTROLLED && fernies > 0) {
-            this.owner = Owner.MINE;
+            this.owner = Owner.MINE; //By placing fernies on an uncontrolled node, the node becomes mine.
             this.fernieCount += fernies;
         } else if (owner == Owner.THEIRS) {
             if (this.fernieCount < fernies) {
                 int temp = fernieCount;
                 this.fernieCount = fernies - temp;
-            } else {// TODO entfernen vor Abgabe
+            } else {
                 throw new MoveException(
-                        "Schlechter Zug: Du versuchst gerade den Gegner anzugreifen und setzt aber zu wenig Fernies ein. Knotennummer: "
+                        "Bad move: You're trying to attack the opponent but are using too few fernies. Node number: "
                                 + nodeNumber);
             }
         } else if (owner == Owner.UNKNOWN) {
@@ -97,9 +101,12 @@ public class Node {
     /**
      * Removes a given number of fernies from a node.
      * <p>
-     * If the node belongs to the agent, and the current fernie count minus the fernies to be removed is >= 0, the given number of fernies is removed.
+     * If the node belongs to the agent, and the current fernie count minus the fernies to be removed is >= 0, the move is carried out.
+     * <p>
      * If the agents tries to remove more fernies than are currently on the node, a {@link MoveException} is thrown.
+     * <p>
      * If the node belongs to the opponent, is uncontrolled or invisible, a {@link MoveException} is thrown.
+     * 
      * @param ferniesRemove number of fernies to be removed
      * @throws MoveException thrown if the move is invalid
      */
@@ -107,15 +114,15 @@ public class Node {
         if (owner == Owner.MINE && this.fernieCount - ferniesRemove >= 0) {
             this.fernieCount -= ferniesRemove;
             if (fernieCount == 0) {
-                owner = Owner.UNCONTROLLED;
+                owner = Owner.UNCONTROLLED; //If I remove all fernies from the node, the node becomes uncontrolled.
             }
         } else if (owner == Owner.MINE && fernieCount - ferniesRemove < 0) {
             throw new MoveException(
-                    "Ungültiger Zug: Du versuchst mehr Fernies von dem Knoten zu entfernen als vorhanden sind. Knotennummer: "
+                    "Invalid move: You are trying to remove more fernies from the node than are currently placed on it. Node number: "
                             + nodeNumber);
         } else if (owner != Owner.MINE){
             throw new MoveException(
-                    "Ungültiger Zug: Du versuchst Knoten von einem Knoten zu entfernen, der nicht dir gehört. Knotennummer: "
+                    "Invalid move: You are trying to remove fernies from a node that isn't yours. Node number: "
                             + nodeNumber);
         }
     }

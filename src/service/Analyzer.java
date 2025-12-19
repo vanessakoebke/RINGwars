@@ -30,7 +30,7 @@ public class Analyzer {
             return new Expansion(notes);
         }
         int available = thisRound.getAvailableFernies() + thisRound.calcUnnecessary();
-        if (thisRound.getNodes(Owner.THEIRS).size() < 5
+        if (thisRound.getNodes(Owner.THEIRS).size() < 5 && thisRound.getNodes(Owner.THEIRS).size() > 0
                 && available > thisRound.getMaxNode(Owner.THEIRS).getFernieCount() * notes.getAttackBuffer() * 1.1) {
             return new AttackMax(notes);
         }
@@ -76,7 +76,7 @@ public class Analyzer {
          * Initialize ratios for round 1
          */
         if (!notes.isAnalysed()) {
-            notes.setRatiosThisRound(0, 0, 0, 1, 0); //TODO ratios prüfen
+            notes.setRatiosThisRound(0, 0, 0, 1, 0); 
             notes.setAnalysed();
         }
         // Opponent's attacks

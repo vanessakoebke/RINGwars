@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the output (move file) that the agent generates.
+ * Represents the output (to be written in the move file) that the agent generates.
  */
 public class Output {
-    private final int ferniesTotal;
-    private List<Line> outputList;
+    private final int ferniesTotal; //the total number of fernies my agent has available in the current round
+    private List<Line> outputList; //list with the lines to be written in the move.txt
 
     /**
      * Initializes the output with the number of fernies that the agent has available in the current round (new fernies + already placed fernies).
-     * @param ferniesTotal
+     * @param ferniesTotal total number of available fernies
      */
     public Output(int ferniesTotal) {
         this.ferniesTotal = ferniesTotal;
@@ -28,7 +28,6 @@ public class Output {
         if (!check(ring)) {
             System.out.println(outputList.toString());
             System.out.println("Something's wrong with the output. Return empty move file.");
-            //TODO evtl. entfernen, macht evtl agent kaputt
         }
         List<String> output = new ArrayList<String>();
         for (Line line : outputList) {
@@ -48,6 +47,7 @@ public class Output {
      * @param fernies the number of fernies to be placed on it
      */
     public void upsert(int nodeNumber, int fernies) {
+        //Avoids duplicate lines by upserting
         for (Line line : outputList) {
             if (line.nodeNumber == nodeNumber&& line.fernies>=0) {
                 line.fernies += fernies;
@@ -64,6 +64,7 @@ public class Output {
      */
     public void remove(int nodeNumber, int fernies) {
         fernies = -fernies;
+        //Avoids duplicate lines
         for (Line line : outputList) {
             if (line.nodeNumber == nodeNumber && line.fernies<0) {
                 line.fernies += fernies;

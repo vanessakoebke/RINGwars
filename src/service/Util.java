@@ -25,7 +25,6 @@ public class Util {
         if (step == null) {
             return null;
         }
-        System.out.println(step);
         String path = agentName + File.separator + step + ".txt";
         String[] input = new String[5];
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -39,6 +38,7 @@ public class Util {
             return null;
         } catch (IOException e) {
             System.out.println("The step file could not be read. An empty move file will be created.");
+            return null;
         }
         /*
          * 1st check: if the step file has more than 4 lines, a message is displayed,

@@ -53,7 +53,6 @@ public class RINGwars_8878390_Koebke_Vanessa {
         strategy = Analyzer.getStrategy(ring, notes);
         String stars = "****";
         System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);
-        System.out.println(round);
         System.out.println("Executed strategy: "+ strategy.toString() + System.lineSeparator() +
                 "Expansion (" + notes.getRatiosThisRound()[0] +"), Consolidation (" + notes.getRatiosThisRound()[1] +
                 "), AttackMax (" + notes.getRatiosThisRound()[2] + "), AttackMin ("+ notes.getRatiosThisRound()[3] + "), Defensive (" + notes.getRatiosThisRound()[4] + ")");
@@ -67,7 +66,6 @@ public class RINGwars_8878390_Koebke_Vanessa {
         Util.writeMove(stringOutput, agentName);
         Util.writeNotes(notes.toString(), agentName);
         Util.writePrediction(ring);
-        System.out.println(stringOutput.toString());
         System.out.println("The program terminated successfully.");
         System.out.println(stars + System.lineSeparator() + stars + System.lineSeparator() + stars);
     }

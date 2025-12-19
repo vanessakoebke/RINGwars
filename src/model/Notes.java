@@ -3,25 +3,47 @@ package model;
 import java.util.*;
 
 /**
- * Represents the notes that the agents creates during the round and which it
- * accesses during the round to determine its behavior.
+ * Represents the notes that the agents creates during the game and which it
+ * accesses during each round to determine its behavior. The notes contain information about the state of the game (e.g. the current round
+ * or the visibility range), about my agent's and the opponent's behavior (e.g. attacks or blocks).
  */
 public class Notes {
-    private boolean initialAnalysis;
-    private int currentRound;
-    private StrategyOpponent[] strategyOpponent;
-    private int totalAttacksByOpponent;
-    private int lastRoundAttacksByOpponent;
+    private boolean initialAnalysis; //whether the first analysis in round 2 was carried out successfully
+    private int currentRound; 
     private int visibilityRadius;
-    private List<Integer> myAttacksThisRound;
-    private List<Integer> abandoned;
-    private double blockedAttacksTotal;
-    private double blockedAttacksLastRound;
-    private double attackBuffer;
-    private final double[] ratiosLastRound;
-    private final double[] ratiosThisRound;
+    private StrategyOpponent[] strategyOpponent; //Element 0 represents the opponent's aggressiveness and element 1 their defensiveness.
+    private int totalAttacksByOpponent; //Total number of attacks that the opponent carried out against my agent during the current game.
+    private int lastRoundAttacksByOpponent; //Number of attacks the opponent carried out against my agent in the previous round.
+    private List<Integer> myAttacksThisRound; //Opponent nodes that my agent attacked
+    private List<Integer> abandoned; //Nodes that belonged to my agent at the beginning of the round, but that were abandoned during the round. 
+    //Necessary to determine whether the node was abandoned willingly or lost due to an opponent attack.
+    private double blockedAttacksTotal; //Relative number of my attacks that were blocked by the opponent during the game.
+    private double blockedAttacksLastRound; //Relative number of my attacks that were blocked by the opponent during the previous round.
+    private double attackBuffer; //The attack buffer is a multiplier used on the number of fernies my agent uses to attack to the opponent.
+    private double[] ratios; //The ratio of the different basic strategies used in the MixedStrategy. 
+    //Element 0 = Expansion
+    //Element 1 = Consolidation
+    //Element 2 = AttackMax
+    //Element 3 = AttackMin
+    //Element 4 = Defensive
 
 
+    /**
+     * Initializes the Notes object.
+     * 
+     * @param round current round
+     * @param strategyOpponent the aggressiveness and defensiveness of the opponent
+     * @param totalAttacksByOpponent total number of attacks that the opponent carried out against my agent during the current game.
+     * @param lastRoundAttacksByOpponent number of attacks the opponent carried out against my agent in the previous round.
+     * @param visibility visibility range
+     * @param myAttacksLastRound opponent nodes that my agent attacked
+     * @param abandoned nodes my agent abandoned
+     * @param blockedAttacksTotal relative number of my attacks that were blocked by the opponent during the game
+     * @param blockedAttacksLastRound relative number of my attacks that were blocked by the opponent during the previous round
+     * @param attackBuffer attack buffer
+     * @param ratios ratio of basic strategies used for the Mixed Strategy
+     * @param analysis { @code true } if the initial analysis was successful, { @code false } otherwise
+     */
     public Notes(int round, StrategyOpponent[] strategyOpponent, int totalAttacksByOpponent,
             int lastRoundAttacksByOpponent, int visibility, List<Integer> myAttacksLastRound, List<Integer> abandoned,
             double blockedAttacksTotal, double blockedAttacksLastRound, double attackBuffer, double[] ratios, boolean analysis) {
@@ -39,11 +61,15 @@ public class Notes {
         this.blockedAttacksTotal = blockedAttacksTotal;
         this.blockedAttacksLastRound = blockedAttacksLastRound;
         this.attackBuffer = attackBuffer;
-        this.ratiosLastRound = ratios;
-        this.ratiosThisRound = ratios;
+        this.ratios = ratios;
         this.initialAnalysis = analysis;
     }
 
+    /**
+     * Initializes the Notes object with default values in case the Notes object of the previous round could not be read.
+     * @param round current round
+     * @param visibility visibility range
+     */
     public Notes(int round, int visibility) {
         this(round, new StrategyOpponent[2], 0, 0, visibility, new ArrayList<Integer>(), new ArrayList<Integer>(), 0.0, 0.0, 1.0, new double[]{0,0,0,0,0}, false);
     }
@@ -134,7 +160,7 @@ public class Notes {
     }
 
     /**
-     * Returns the nodes that my agent has abandoned during the previous round.
+     * Returns the nodes that my agent has abandoned during the round.
      * @return abandoned nodes
      */
     public List<Integer> getAbandoned() {
@@ -158,7 +184,7 @@ public class Notes {
     }
 
     /**
-     * Adds a node number to the list of the agent's attacks in the current round.
+     * Adds a node number to the list of my agent's attacks.
      * 
      * @param nodeNumber attacked node number
      */
@@ -169,8 +195,8 @@ public class Notes {
     }
     
     /**
-     * Adds a node number to list of nodes that my agent has abandoned this round.
-     * @param nodeNumber
+     * Adds a node number to the list of nodes that my agent has abandoned this round.
+     * @param nodeNumber number of the abandoned node
      */
     public void addAbandoned(int nodeNumber) {
         this.abandoned.add(nodeNumber);
@@ -258,7 +284,7 @@ public class Notes {
     }
 
     /**
-     * Initializes the notes for a new round after the analysis by emptying the list of abandoned and attacked notes of the previous round.
+     * Initializes the notes for a new round after the analysis has concluded, by emptying the list of abandoned and attacked notes of the previous round.
      */
     public void initNewRound() {
         myAttacksThisRound = new ArrayList<Integer>();
@@ -266,7 +292,7 @@ public class Notes {
     }
 
     /**
-     * Returns the notes a String, so it can be saved in the notes.txt file.
+     * Returns the notes as String, so it can be saved in the notes.txt file.
      * 
      * @return notes as String
      */
@@ -274,8 +300,7 @@ public class Notes {
     public String toString() {
         String myAttacksString = "";
         Iterator<Integer> iterator = myAttacksThisRound.iterator();
-        // The first element has been put before the while loop, so that the String
-        // doesn't end with a comma.
+        // The first element has been put before the while loop, so that the String doesn't end with a comma.
         if (iterator.hasNext()) {
             myAttacksString = String.valueOf(iterator.next());
         }
@@ -285,8 +310,7 @@ public class Notes {
         
         String abandonedString = "";
         Iterator<Integer> iteratorA = abandoned.iterator();
-        // The first element has been put before the while loop, so that the String
-        // doesn't end with a comma.
+        // The first element has been put before the while loop, so that the String doesn't end with a comma.
         if (iteratorA.hasNext()) {
             abandonedString = String.valueOf(iteratorA.next());
         }
@@ -297,13 +321,13 @@ public class Notes {
         return "Opponent's strategy: " + strategyOpponent[0] + "," + strategyOpponent[1] + System.lineSeparator() + 
                 "Opponent's attacks total: " + totalAttacksByOpponent + System.lineSeparator() + 
                 "Opponent's attacks last round: " + lastRoundAttacksByOpponent + System.lineSeparator() + 
-                "Visibility radius: " + visibilityRadius  + System.lineSeparator() + 
+                "Visibility range: " + visibilityRadius  + System.lineSeparator() + 
                 "My attacks last round: " + myAttacksString + System.lineSeparator() +
                 "Blocked attacks total: " + blockedAttacksTotal + System.lineSeparator() +
                 "Blocked attacks last round: " + blockedAttacksLastRound + System.lineSeparator() + 
                 "Attack buffer: " + attackBuffer + System.lineSeparator() +
-                "Used strategies (Expansion, Consolidation, Attack, Defensive): " + 
-                ratiosThisRound[0] + "," + ratiosThisRound[1] + "," + ratiosThisRound[2] + "," + ratiosThisRound[3] + "," + ratiosThisRound[4] + System.lineSeparator() +
+                "Used strategies (Expansion, Consolidation, AttackMax, AttackMin, Defensive): " + 
+                ratios[0] + "," + ratios[1] + "," + ratios[2] + "," + ratios[3] + "," + ratios[4] + System.lineSeparator() +
                 "Abandoned nodes: " + abandonedString + System.lineSeparator() +
                 "Initial analysis concluded: " + initialAnalysis;
     }
@@ -311,7 +335,7 @@ public class Notes {
 
     /**
      * Returns whether the initial analysis of the previous round has been successful.
-     * @return true if the initial analysis was successful, false otherwise
+     * @return { @code true } if the initial analysis was successful, { @code false} otherwise
      */
     public boolean isAnalysed() {
         return initialAnalysis;
@@ -320,51 +344,39 @@ public class Notes {
 
 
     /**
-     * Sets the ration for the different kind of strategies.
+     * Sets the ratio for the different kind of strategies.
      * 
      * @param expansion     ratio for expansion strategy
      * @param consolidation ratio for consolidation strategy
-     * @param attackMax        ratio for attack strategy
+     * @param attackMax        ratio for attackMax strategy
+     * @param attackMin     ratio for attackMin strategy
      * @param defensive     ratio for defensive strategy
      */
     public void setRatiosThisRound(double expansion, double consolidation, double attackMax, double attackMin, double defensive) {
-        ratiosThisRound[0] = expansion;
-        ratiosThisRound[1] = consolidation;
-        ratiosThisRound[2] = attackMax;
-        ratiosThisRound[3] = attackMin;
-        ratiosThisRound[4] = defensive;
-        // TODO entfernen vor abgabe
-        if (!checkRatios()) {
-            System.out.println("Deine Ratios stimmen nicht (setRatios)");
-        }
+        ratios[0] = expansion;
+        ratios[1] = consolidation;
+        ratios[2] = attackMax;
+        ratios[3] = attackMin;
+        ratios[4] = defensive;
     }
 
     /**
-     * Returns the mixed strategy ratios of the current round.
-     * @return ratios
+     * Returns the mixed strategy ratio.
+     * @return ratio
      */
     public double[] getRatiosThisRound() {
-        return ratiosThisRound;
+        return ratios;
     }
     
-    /**
-     * Returns the mixed strategy ratios of the previous round.
-     * @return ratios
-     */
-    public double[] getRatiosLastRound() {
-        return ratiosLastRound;
-    }
+
 
     /**
      * Checks if the calculated ratios are not superior to 1.
-     * @return true if the sum of the ratios is <= 1, false otherwise
+     * 
+     * @return { @code true } if the sum of the ratios is <= 1, { @code false } otherwise
      */
     private boolean checkRatios() {
-        // TODO entfernen vor Abgabe
-        if (ratiosThisRound[0] + ratiosThisRound[1] + ratiosThisRound[2] + ratiosThisRound[3] + ratiosThisRound[4] < 1) {
-            System.out.println("Du hast deine Ratios nicht voll ausgeschöpft.");
-        }
-        return ratiosThisRound[0] + ratiosThisRound[1] + ratiosThisRound[2] + ratiosThisRound[3] + ratiosThisRound[4] <= 1;
+        return ratios[0] + ratios[1] + ratios[2] + ratios[3] + ratios[4] <= 1;
     }
 
     /**
@@ -373,223 +385,91 @@ public class Notes {
      * @param increase the increase
      */
     public void increaseRatioBy(int strategy, double increase) {
+        /*
+         * If the ratio of a given strategy is to be increased, consequently the ratio of another strategy needs to be lowered. For each strategy the "opposite"
+         * strategy (i.e. the strategy that is in strongest contradiction witht the goal of the strategy whose ratio is to be raised) is lowered. However, the
+         * ratio of a strategy can only be lowered if the resulting ratio is not inferior to zero.
+         */
         switch (strategy) {
         /*
          * Expansion
          */
         case 0:
-            if (ratiosThisRound[4] >= increase) {
-                ratiosThisRound[4] -= increase;
-            } else if (ratiosThisRound[1] >= increase) {
-                ratiosThisRound[1] -= increase;
-            } else if (ratiosThisRound[2] >= increase) {
-                ratiosThisRound[2] -= increase;
-            } else if (ratiosThisRound[3] >= increase) {
-                ratiosThisRound[3] -= increase;
+            if (ratios[4] >= increase) {
+                ratios[4] -= increase;
+            } else if (ratios[1] >= increase) {
+                ratios[1] -= increase;
+            } else if (ratios[2] >= increase) {
+                ratios[2] -= increase;
+            } else if (ratios[3] >= increase) {
+                ratios[3] -= increase;
             } else {
                 return;
             }
-            ratiosThisRound[0] += increase;
+            ratios[0] += increase;
         //Consolidation    
         case 1:
-            if (ratiosThisRound[2] >= increase) {
-                ratiosThisRound[2] -= increase;
-            } else if (ratiosThisRound[3] >= increase) {
-                ratiosThisRound[3] -= increase;
-            } else if (ratiosThisRound[0] >= increase) {
-                ratiosThisRound[0] -= increase;
-            } else if (ratiosThisRound[4] >= increase) {
-                ratiosThisRound[4] -= increase;
+            if (ratios[2] >= increase) {
+                ratios[2] -= increase;
+            } else if (ratios[3] >= increase) {
+                ratios[3] -= increase;
+            } else if (ratios[0] >= increase) {
+                ratios[0] -= increase;
+            } else if (ratios[4] >= increase) {
+                ratios[4] -= increase;
             } else {
                 return;
             }
-            ratiosThisRound[1] += increase;
+            ratios[1] += increase;
         //AttackMax
         case 2:
-            if (ratiosThisRound[4] >= increase) {
-                ratiosThisRound[4] -= increase;
-            } else if (ratiosThisRound[1] >= increase) {
-                ratiosThisRound[1] -= increase;
-            } else if (ratiosThisRound[0] >= increase) {
-                ratiosThisRound[0] -= increase;
-            } else if (ratiosThisRound[3] >= increase) {
-                ratiosThisRound[3] -= increase;
+            if (ratios[4] >= increase) {
+                ratios[4] -= increase;
+            } else if (ratios[1] >= increase) {
+                ratios[1] -= increase;
+            } else if (ratios[0] >= increase) {
+                ratios[0] -= increase;
+            } else if (ratios[3] >= increase) {
+                ratios[3] -= increase;
             } else {
                 return;
             }
-            ratiosThisRound[2] += increase;
+            ratios[2] += increase;
         //AttackMin
         case 3:
-            if (ratiosThisRound[4] >= increase) {
-                ratiosThisRound[4] -= increase;
-            } else if (ratiosThisRound[1] >= increase) {
-                ratiosThisRound[1] -= increase;
-            } else if (ratiosThisRound[0] >= increase) {
-                ratiosThisRound[0] -= increase;
-            } else if (ratiosThisRound[2] >= increase) {
-                ratiosThisRound[2] -= increase;
+            if (ratios[4] >= increase) {
+                ratios[4] -= increase;
+            } else if (ratios[1] >= increase) {
+                ratios[1] -= increase;
+            } else if (ratios[0] >= increase) {
+                ratios[0] -= increase;
+            } else if (ratios[2] >= increase) {
+                ratios[2] -= increase;
             } else {
                 return;
             }
-            ratiosThisRound[2] += increase;
+            ratios[2] += increase;
         //Defensive
         case 4:
-            if (ratiosThisRound[2] >= increase) {
-                ratiosThisRound[2] -= increase;
-            } else if (ratiosThisRound[3] >= increase) {
-                ratiosThisRound[3] -= increase;
-            } else if (ratiosThisRound[0] >= increase) {
-                ratiosThisRound[0] -= increase;
-            } else if (ratiosThisRound[1] >= increase) {
-                ratiosThisRound[1] -= increase;
+            if (ratios[2] >= increase) {
+                ratios[2] -= increase;
+            } else if (ratios[3] >= increase) {
+                ratios[3] -= increase;
+            } else if (ratios[0] >= increase) {
+                ratios[0] -= increase;
+            } else if (ratios[1] >= increase) {
+                ratios[1] -= increase;
             } else {
                 return;
             }
-            ratiosThisRound[4] += increase;
+            ratios[4] += increase;
         }
-        // TODO entfernen vor Abgabe
         if (!checkRatios()) {
-            System.out.println("Deine Ratios stimmen nicht (increase).");
+            System.out.println("Something went wrong when trying to increase the ratio.");
         }
     }
     
-    //TODO prüfen ob nötig
-    public void decreaseRatioBy(int strategy, double decrease) {
-        switch (strategy) {
-        /*
-         * Expansion
-         */
-        case 0:
-            if (ratiosThisRound[0] >= decrease) {
-                ratiosThisRound[0] -= decrease;
-            }
-            if (ratiosThisRound[4] >= decrease) {
-                ratiosThisRound[4] -= decrease;
-            } else if (ratiosThisRound[1] >= decrease) {
-                ratiosThisRound[1] -= decrease;
-            } else if (ratiosThisRound[2] >= decrease) {
-                ratiosThisRound[2] -= decrease;
-            } else if (ratiosThisRound[3] >= decrease) {
-                ratiosThisRound[3] -= decrease;
-            } else {
-                return;
-            }
-        //Consolidation    
-        case 1:
-            if (ratiosThisRound[2] >= decrease) {
-                ratiosThisRound[2] -= decrease;
-            } else if (ratiosThisRound[3] >= decrease) {
-                ratiosThisRound[3] -= decrease;
-            } else if (ratiosThisRound[0] >= decrease) {
-                ratiosThisRound[0] -= decrease;
-            } else if (ratiosThisRound[4] >= decrease) {
-                ratiosThisRound[4] -= decrease;
-            } else {
-                return;
-            }
-            ratiosThisRound[1] += decrease;
-        //AttackMax
-        case 2:
-            if (ratiosThisRound[4] >= decrease) {
-                ratiosThisRound[4] -= decrease;
-            } else if (ratiosThisRound[1] >= decrease) {
-                ratiosThisRound[1] -= decrease;
-            } else if (ratiosThisRound[0] >= decrease) {
-                ratiosThisRound[0] -= decrease;
-            } else if (ratiosThisRound[3] >= decrease) {
-                ratiosThisRound[3] -= decrease;
-            } else {
-                return;
-            }
-            ratiosThisRound[2] += decrease;
-        //AttackMin
-        case 3:
-            if (ratiosThisRound[4] >= decrease) {
-                ratiosThisRound[4] -= decrease;
-            } else if (ratiosThisRound[1] >= decrease) {
-                ratiosThisRound[1] -= decrease;
-            } else if (ratiosThisRound[0] >= decrease) {
-                ratiosThisRound[0] -= decrease;
-            } else if (ratiosThisRound[2] >= decrease) {
-                ratiosThisRound[2] -= decrease;
-            } else {
-                return;
-            }
-            ratiosThisRound[2] += decrease;
-        //Defensive
-        case 4:
-            if (ratiosThisRound[2] >= decrease) {
-                ratiosThisRound[2] -= decrease;
-            } else if (ratiosThisRound[3] >= decrease) {
-                ratiosThisRound[3] -= decrease;
-            } else if (ratiosThisRound[0] >= decrease) {
-                ratiosThisRound[0] -= decrease;
-            } else if (ratiosThisRound[1] >= decrease) {
-                ratiosThisRound[1] -= decrease;
-            } else {
-                return;
-            }
-            ratiosThisRound[4] += decrease;
-        }
-        // TODO entfernen vor Abgabe
-        if (!checkRatios()) {
-            System.out.println("Deine Ratios stimmen nicht (increase).");
-        }
-    }
-    // TODO implementieren
-//    public void decreaseRatio (String strategy) {
-//        switch(strategy){
-//        case "E":
-//            if (defensiveRatio >= 0.05) {
-//                defensiveRatio -= 0.05;
-//            } else if (consolidationRatio >= 0.05) {
-//                consolidationRatio -= 0.05;
-//            } else if (attackRatio >= 0.05) {
-//                attackRatio -= 0.05;
-//            } else {
-//                return;
-//            }
-//            expansionRatio += 0.05;
-//        case "C": 
-//            if (attackRatio >= 0.05) {
-//                attackRatio -= 0.05;
-//            } else if (expansionRatio >= 0.05) {
-//                expansionRatio -= 0.05;
-//            } else if (defensiveRatio >= 0.05) {
-//                defensiveRatio -= 0.05;
-//            } else {
-//                return;
-//            }
-//            consolidationRatio += 0.05;
-//        case "A":
-//            if (defensiveRatio >= 0.05) {
-//                defensiveRatio -= 0.05;
-//            } else if (consolidationRatio >= 0.05) {
-//                consolidationRatio -= 0.05;
-//            } else if (expansionRatio >= 0.05) {
-//                expansionRatio -= 0.05;
-//            } else {
-//                return;
-//            }
-//            attackRatio += 0.05;
-//        case "D": 
-//            if (attackRatio >= 0.05) {
-//                attackRatio -= 0.05;
-//            } else if (expansionRatio >= 0.05) {
-//                expansionRatio -= 0.05;
-//            } else if (consolidationRatio >= 0.05) {
-//                consolidationRatio -= 0.05;
-//            } else {
-//                return;
-//            }
-//            defensiveRatio += 0.05;
-//        }
-//        //TODO entfernen vor Abgabe
-//        if (!checkRatios()) {
-//            System.out.println("Deine Ratios stimmen nicht.");
-//        }
-//    }
-
+    
     /**
      * Sets the value of initial analysis to true.
      */

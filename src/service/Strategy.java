@@ -50,7 +50,6 @@ public abstract class Strategy {
          * attacks.
          */
         while (!ring.isRingFull(Owner.MINE) && ring.getAvailableFernies() > 0) {
-            // TODO hier eventuell die Knoten die am nächsten am Gegner sind zuerst besetzen
             Node node = ring.getMinNode(Owner.MINE);
             availableFernies = ring.getAvailableFernies();
             try {
@@ -63,28 +62,6 @@ public abstract class Strategy {
                 e.printStackTrace();
             }
         }
-        /*
-         * Wenn die unkontrollierten und meine Knoten alle voll sind, sollen die Knoten
-         * des Gegners angegriffen werden.
-         */
-//                 TODO hier ggf. die Angriffsstrategie aufrufen
-//        while (!ring.isRingVoll(Besitz.SEINS) && ring.getFerniesVerfuegbar() > 0) {
-//            ferniesAktuell = ring.getFerniesVerfuegbar();
-//            System.out.println(ferniesAktuell);
-//            System.exit(0);
-//            aktuelleKnoten = ring.getKnoten(Besitz.SEINS);
-//            try {
-//                ring.addFernies(aktuelleKnoten.getFirst().getKnotenNummer(), ferniesAktuell);
-//                ausgabe.upsert(aktuelleKnoten.getFirst().getKnotenNummer(), ferniesAktuell);
-//            } catch (FernieException e) {
-//                ausgabe.upsert(aktuelleKnoten.getFirst().getKnotenNummer(), e.getFernies());
-//            } catch (MoveException e) {
-//                System.out
-//                        .println("Knotennummer " + aktuelleKnoten.getFirst().getKnotenNummer() + ": " + e.getMessage());
-//            } finally {
-//                aktuelleKnoten.removeFirst();
-//            }
-//        }
     }
 
     /**
@@ -117,7 +94,6 @@ public abstract class Strategy {
                 continue;
             }
         }
-        System.out.println("Available fernies this round: " + ring.getAvailableFernies());
     }
 
     /**
@@ -139,27 +115,10 @@ public abstract class Strategy {
                 notes.addAbandoned(node.getNodeNumber());
             } catch (MoveException e) {
                 // If removing fernies from one node was unsuccessful, the methode shall simply
-                // contrinue and remove the fernies from the other nodes.
+                // continue and remove the fernies from the other nodes.
                 errorCount++;
                 continue;
             }
-        }
-    }
-    
-    /**
-     * This method checks whether the nodes on either side of a given node are occupied by the opponent. This serves to avoid unintended edge battles.
-     * @param ring ring
-     * @param node node which should be checked for neighbors
-     * @return true if opponent occupies neighboring nodes, else false
-     */
-     boolean checkForNeighbors(Ring ring, Node node) {
-         int next = (node.getNodeNumber() + 1) % ring.getNodes().length;
-         int prev = (node.getNodeNumber() - 1 + ring.getNodes().length) % ring.getNodes().length;
-        if (ring.getNodeByNumber(next).getOwner() == Owner.THEIRS ||
-                ring.getNodeByNumber(prev).getOwner() == Owner.THEIRS ) {
-            return true;
-        } else {
-            return false;
         }
     }
 }

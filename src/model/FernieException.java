@@ -7,7 +7,7 @@ package model;
  * The number of fernies that has actually been added can be retrieved by {@link #getFernies()}
  */
 public class FernieException extends MoveException {
-    private int actualFernies;
+    private int actualFernies; //number of fernies that was actually placed
     
     /**
      * Initializes the FernieException with the number of fernies that have actually been placed.

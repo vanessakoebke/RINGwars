@@ -66,7 +66,7 @@ public class Expansion extends Strategy {
                         node = freeNodes.getLast();
                         freeNodes.removeLast();
                     }
-                    if (!checkForNeighbors(ring, node)) {
+                    if (!ring.checkForNeighbors(node)) {
                         ring.addFernies(node.getNodeNumber(), 1);
                         ferniesForThisStrategy -= 1;
                         output.upsert(node.getNodeNumber(), 1);
@@ -89,7 +89,7 @@ public class Expansion extends Strategy {
             int ferniesPerNode = ferniesForThisStrategy / (numberFreeNodes);
             while (ferniesForThisStrategy > 0 && iterator.hasNext()) {
                 node = iterator.next();
-                if (!checkForNeighbors(ring, node)) {
+                if (!ring.checkForNeighbors(node)) {
                     try {
                         ring.addFernies(node.getNodeNumber(), ferniesPerNode);
                         ferniesForThisStrategy -= ferniesPerNode;

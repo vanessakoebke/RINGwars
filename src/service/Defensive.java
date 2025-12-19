@@ -69,16 +69,19 @@ public class Defensive extends Strategy {
              * and places all fernies on this node.
              */
             List<Node> list = ring.getNodes(Owner.UNCONTROLLED);
-            Node node = list.get(new Random().nextInt(list.size()));
-            try {
-                ring.addFernies(node.getNodeNumber(), ferniesForThisStrategy);
-                output.upsert(node.getNodeNumber(), ferniesForThisStrategy);
-            } catch (FernieException e) {
-                output.upsert(node.getNodeNumber(), e.getFernies());
-            } catch (MoveException e) {
-                System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
-                e.printStackTrace();
-            };
+            if (!list.isEmpty()) {
+                Node node = list.get(new Random().nextInt(list.size()));
+                try {
+                    ring.addFernies(node.getNodeNumber(), ferniesForThisStrategy);
+                    output.upsert(node.getNodeNumber(), ferniesForThisStrategy);
+                } catch (FernieException e) {
+                    output.upsert(node.getNodeNumber(), e.getFernies());
+                } catch (MoveException e) {
+                    System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+                ;
+            }
         } 
         return output;
     }

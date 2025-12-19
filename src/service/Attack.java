@@ -125,9 +125,9 @@ public abstract class Attack extends Strategy {
          * which have at least 2 free neighbors on one side.
          */
         List<Node> listFree2 = ring.getNodesFreeNeighbors(2);
-        for (Node n : listFree2) {
-            System.out.println(n.getNodeNumber() + " ");
-        }
+//        for (Node n : listFree2) {
+//            System.out.println(n.getNodeNumber() + " ");
+//        }
         while (!listFree2.isEmpty()
                 && ferniesForThisStrategy > ring.getMinNode(listFree2).getFernieCount() * notes.getAttackBuffer() *1.1) {
             selected = selectNode(ring, listFree2);

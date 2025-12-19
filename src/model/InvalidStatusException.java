@@ -1,7 +1,7 @@
 package model;
 
 /**
- * Thrown when the status file of the current step is not valid.
+ * Thrown when the status file of a given step is not valid.
  */
 public class InvalidStatusException extends Exception{
     
