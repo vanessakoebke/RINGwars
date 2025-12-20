@@ -8,7 +8,7 @@ import model.*;
  * Abstract class that represents an aggressive strategy that attacks opponent nodes.
  */
 public abstract class Attack extends Strategy {
-    boolean attackMax;
+    boolean attackMax; //true if the strongest nodes will be attacked, false otherwise 
 
     /**
      * Initializes the attack strategy with the notes and the information whether the strongest or weakest nodes will be attacked.
@@ -64,7 +64,7 @@ public abstract class Attack extends Strategy {
     private void localBattle(Ring ring, Output output) {
         List<Node> theirs = ring.getNodes(Owner.THEIRS);
         Node selected = selectNode(ring, theirs);
-        // The agent attacks with one fernie more than is required by the number of fernies currently on the node * the attack buffer.
+        // The agent attacks with one fernie more than is required by the number of fernies currently on the node multiplied by the attack buffer.
         while (!theirs.isEmpty() && selected != null
                 && ferniesForThisStrategy > selected.getFernieCount() * notes.getAttackBuffer() +1) {
             selected = selectNode(ring, theirs);
@@ -113,9 +113,8 @@ public abstract class Attack extends Strategy {
             } catch (MoveException e) {
                 System.out.println("Node Number " + selected.getNodeNumber() + ": " + e.getMessage());
                 e.printStackTrace();
-                listFree4.remove(selected); //To avoid infinity loops
             } finally {
-                listFree4.remove(selected);
+                listFree4.remove(selected); //To avoid infinity loops
             }
         }
         /*
@@ -125,11 +124,8 @@ public abstract class Attack extends Strategy {
          * which have at least 2 free neighbors on one side.
          */
         List<Node> listFree2 = ring.getNodesFreeNeighbors(2);
-//        for (Node n : listFree2) {
-//            System.out.println(n.getNodeNumber() + " ");
-//        }
         while (!listFree2.isEmpty()
-                && ferniesForThisStrategy > ring.getMinNode(listFree2).getFernieCount() * notes.getAttackBuffer() *1.1) {
+                && ferniesForThisStrategy > ring.getMinNode(listFree2).getFernieCount() * notes.getAttackBuffer() *1.1) { //Additional 1.1 is explained in PDF file.
             selected = selectNode(ring, listFree2);
             int ferniesAngriff = (int) (selected.getFernieCount() * notes.getAttackBuffer() *1.1);
             try {

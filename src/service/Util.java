@@ -26,7 +26,7 @@ public class Util {
             return null;
         }
         String path = agentName + File.separator + step + ".txt";
-        String[] input = new String[5];
+        String[] input = new String[5]; //Input array has one additional length in order to check if the input file was longer than expected.
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             int i = 0;
             String line;
@@ -110,7 +110,7 @@ public class Util {
      * 
      * @param step      step number
      * @return ring
-     * @throws InvalidStatusException if the step file is invalid
+     * @throws InvalidStatusException thrown if the step file is invalid
      */
     public static Ring readStatusFile(String step) throws InvalidStatusException {
         return readStatusFile(agentNamePerm, step);
@@ -178,7 +178,7 @@ public class Util {
                 bw.write(notes);
             }
         } catch (IOException e) {
-            System.out.println("The move file could not be created (see StackTrace). The program terminates now.");
+            System.out.println("The notes file could not be created (see StackTrace).");
             e.printStackTrace();
         }
     }
@@ -211,7 +211,7 @@ public class Util {
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Hilfe, beim Ermitteln der Sichtbarkeit ist was schief gelaufen.");
+                System.out.println("Something went wrong when trying to calculate the visibility.");
                 e.printStackTrace();
             }
         }

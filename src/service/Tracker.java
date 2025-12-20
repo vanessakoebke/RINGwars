@@ -3,8 +3,7 @@ package service;
 import java.io.*;
 
 /**
- * Helps track the success of different strategies by counting the wins and
- * losses.
+ * Helps track the success of different strategies by counting the wins and losses.
  * <p>
  * To be disabled before handing in.
  */

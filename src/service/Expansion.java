@@ -102,8 +102,7 @@ public class Expansion extends Strategy {
                     } 
                 } 
             }
-        } 
-        
+        }         
         return output;
     }
     

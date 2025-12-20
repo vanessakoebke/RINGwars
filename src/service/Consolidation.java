@@ -71,7 +71,7 @@ public class Consolidation extends Strategy {
         } else if (visibleForOpponent.size() > 0) {
             /*
              * If there are more available fernies than opponent-visible nodes, the fernies should
-             * be distributed evenly among all nodes.
+             * be distributed evenly among all these nodes.
              */
             Iterator<Node> iterator = visibleForOpponent.iterator();
             int ferniesPerNode = ferniesForThisStrategy / (visibleForOpponent.size());

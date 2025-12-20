@@ -9,8 +9,7 @@ import model.*;
 public class Analyzer {
     
     /**
-     * Returns a strategy based on the state of the ring this round, and last round,
-     * and the notes.
+     * Returns a strategy based on the state of the ring this round, and the knowledge the agent gathered from previous rounds.
      * 
      * @return selected strategy
      */
@@ -22,27 +21,35 @@ public class Analyzer {
         /*
          * Simple reflex agent
          * 
+         * If one of the basic conditions as explained in the PDF documentation is met, the consequent strategy is carried out.
          */
         if (thisRound == null || thisRound.getAvailableFernies() == 0) {
             return new EmptyMove(notes);
         }
+        //If opponent is not visible, expand.
         if (!thisRound.isOpponentVisible()) {
             return new Expansion(notes);
         }
+        //If opponent is weak (less than 5 nodes) and my agent has enough fernies to attack the strongest node, attack.
         int available = thisRound.getAvailableFernies() + thisRound.calcUnnecessary();
         if (thisRound.getNodes(Owner.THEIRS).size() < 5 && thisRound.getNodes(Owner.THEIRS).size() > 0
                 && available > thisRound.getMaxNode(Owner.THEIRS).getFernieCount() * notes.getAttackBuffer() * 1.1) {
+            //The additional 1.1 are explained in the PDF doku. Briefly, the results against Agent2 were better if an additional 1.1 was added.
             return new AttackMax(notes);
         }
+        //If the opponent is more than 1.5 time as strong (number of fernies) as my agent, play defensively.
         if (thisRound.getFernies(Owner.THEIRS) > thisRound.getFernies(Owner.MINE) * 1.5) {
             return new Defensive(notes);
         }
         /*
          * Learning agent
+         * 
+         * If none of the conditions above are met, the agent uses the knowledge it gathered in previous rounds and carries out a Mixed Strategy, i.e. a combination of
+         * several of the basic strategies.
          */
         if (notes.isAnalysed()) {
             return new MixedStrategy(notes);
-        } else {
+        } else { //If the initial analysis failed, the FallBack strategy is used.
             return new FallBack(notes);
         }
     }
@@ -56,7 +63,6 @@ public class Analyzer {
         try {
             ringPrediction = Util.readStatusFile("prediction");
         } catch (InvalidStatusException e) {
-            e.printStackTrace();
             return null;
         }
         return ringPrediction;
@@ -69,17 +75,21 @@ public class Analyzer {
      */
     private static void analyze(Ring thisRound, Notes notes) {
         Ring previousRound = getPreviousRound();
+        //If the prediction file could not be read correctly, the method returns immediately.
         if (previousRound == null) {
             return;
         }
         /*
-         * Initialize ratios for round 1
+         * Initialize ratios for round 1. The selection of this initial ratio is explained in the PDF. Briefly, the results when playing against myself 
+         * showed the best result with this ratio.
          */
         if (!notes.isAnalysed()) {
-            notes.setRatiosThisRound(0, 0, 0, 1, 0); 
+            notes.setRatiosThisRound(0, 0, 0, 1, 0);
             notes.setAnalysed();
         }
         // Opponent's attacks
+        // The agent checks for all nodes that were mine at the end of the previous round and that were not marked as abandoned
+        //whether they were still mine in this round. If not, an opponent attack was successful.
         int lastRoundAttacksByOpponent = 0;
         for (Node nodeP : previousRound.getNodes(Owner.MINE)) {
             Node nodeT = thisRound.getNodeByNumber(nodeP.getNodeNumber());
@@ -128,7 +138,8 @@ public class Analyzer {
         /*
          *  Opponent's aggressiveness
          *  If the opponent attacks less than 1/8 of my nodes, their aggressiveness is rated the lowest level. If they attack between 1/8 and 1/3
-         *  they are rated on the middle level. If they attack more than 1/3, they are rated the highest aggressiveness level.
+         *  they are rated on the middle level. If they attack more than 1/3, they are rated the highest aggressiveness level. Additionally my agent
+         *  adapts the ratio for the MixedStrategy.
          */
         if (lastRoundAttacksByOpponent > 0 && lastRoundAttacksByOpponent <=previousRound.getNodes(Owner.MINE).size()  /8) {
             switch (notes.getAggressiveness()) {
@@ -158,7 +169,7 @@ public class Analyzer {
      * Opponent's defensiveness 
      * If the opponent blocks > 5% more attacks than on
      * average, the opponent's defensiveness is incremented. If the opponent blocks
-     * >5% less attacks than on average, the opponent's defensiveness is decreased.
+     * >5% less attacks than on average, the opponent's defensiveness is decreased. Additionally the agent adapts the attack buffer accordingly.
      */
     if(blockedAttacksLastRoundRel>notes.getBlockedAttacksTotal()*1.05)
 

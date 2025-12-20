@@ -26,7 +26,8 @@ public class Defensive extends Strategy {
     @Override
     public Output move(Ring ring) {
         Output output = new Output(ring.getMaxFerniesThisRound());
-        removeAll(ring, output);
+        removeAll(ring, output); //In contrast to other strategies, in the defensive strategy all nodes owned by the agent are emptied in order to make it
+        //more difficult for the opponent to attack me. Loss of node bonus is accepted in this case.
         output = move(ring, output, 1);
         distributeUnused(ring, output);
         return output;
@@ -80,7 +81,6 @@ public class Defensive extends Strategy {
                     System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
                     e.printStackTrace();
                 }
-                ;
             }
         } 
         return output;
