@@ -45,34 +45,10 @@ public class Consolidation extends Strategy {
         ferniesForThisStrategy = (int) (ring.getAvailableFernies() * ratio);
         List<Node> visibleForOpponent = ring.getVisibleForOpponent(notes.getVisibility());
         /*
-         * The list of nodes visible to the opponent has now been created.
-         * First I remove all unnecessary fernies from nodes that are invisible to the opponent.
-         * Next, the available fernies are distributed among these nodes.
-         * If there are more opponent-visible nodes than available fernies, 
-         * the nodes closest to the opponent should be filled first.
+         * The agent places all available fernies evenly on the nodes that are visible to the opponent.
          */
         Node node = null;
-        if (ferniesForThisStrategy < visibleForOpponent.size()) {
-            while (ferniesForThisStrategy > 0 && !visibleForOpponent.isEmpty()) {
-                try {
-                    int index = visibleForOpponent.size() / 2; //Removing nodes from the middle of the list presumably removes the nodes that are farthest from the opponent
-                    node = visibleForOpponent.get(index);
-                    visibleForOpponent.remove(index);
-                    int fernies = node.getFernieCount();
-                    ring.removeFernies(node.getNodeNumber(), fernies);
-                    output.remove(node.getNodeNumber(), fernies);
-                    notes.addAbandoned(node.getNodeNumber());
-                    ferniesForThisStrategy += fernies;
-                } catch (MoveException e) {
-                    System.out.println("Node number " + node.getNodeNumber() + ": " + e.getMessage());
-                    e.printStackTrace();
-                } 
-            }
-        } else if (visibleForOpponent.size() > 0) {
-            /*
-             * If there are more available fernies than opponent-visible nodes, the fernies should
-             * be distributed evenly among all these nodes.
-             */
+        if (visibleForOpponent.size() > 0) {
             Iterator<Node> iterator = visibleForOpponent.iterator();
             int ferniesPerNode = ferniesForThisStrategy / (visibleForOpponent.size());
             while (ferniesForThisStrategy > 0 && iterator.hasNext()) {

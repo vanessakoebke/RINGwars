@@ -102,7 +102,7 @@ public class Ring {
     }
 
     /**
-     * Returns the list of nodes that visible to the opponent. The visibility used is the one calculated at the beginning of each
+     * Returns the list of nodes that belong to the agent and are visible to the opponent. The visibility used is the one calculated at the beginning of each
      * round by { @link Util }.
      * @param visibility the visibility radius
      * @return nodes that are visible to the opponent
@@ -110,7 +110,7 @@ public class Ring {
     public List<Node> getVisibleForOpponent(int visibility) {
         List<Node> result = new ArrayList<>();
         for (Node node : nodeList) {
-            if (isVisibleForOpponent(node, visibility)) {
+            if (isVisibleForOpponent(node, visibility) && node.getOwner() == Owner.MINE) {
                 result.add(node);
             }
         }
