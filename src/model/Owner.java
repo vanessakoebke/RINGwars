@@ -4,5 +4,21 @@ package model;
  * Represents the ownership status of a node.
  */
 public enum Owner {
-    MINE, UNCONTROLLED, UNKNOWN, THEIRS;
+
+    /**
+     * Node belongs to my agent.
+     */
+    MINE, 
+    /**
+     * Node is uncontrolled.
+     */
+    UNCONTROLLED, 
+    /**
+     * Node is invisible.
+     */
+    UNKNOWN, 
+    /**
+     * Node belongs to the opponent.
+     */
+    THEIRS;
 }

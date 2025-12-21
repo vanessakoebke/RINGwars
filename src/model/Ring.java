@@ -5,7 +5,6 @@ import java.util.function.Predicate;
 
 /**
  * Represents the current status of the playing field and associated informations.
- * <p>
  * <ul>
  * <li>the node list</li>
  * <li>the maximum number of fernies per node (final)</li>
@@ -87,7 +86,7 @@ public class Ring {
 
     /**
      * Returns the list of nodes that are invisible to the opponent. The visibility used is the one calculated at the beginning of each
-     * round by { @link Util }.
+     * round by {@link service.Util}.
      * @param visibility the visibility radius
      * @return nodes that are invisible to the opponent
      */
@@ -103,7 +102,7 @@ public class Ring {
 
     /**
      * Returns the list of nodes that belong to the agent and are visible to the opponent. The visibility used is the one calculated at the beginning of each
-     * round by { @link Util }.
+     * round by {@link service.Util}.
      * @param visibility the visibility radius
      * @return nodes that are visible to the opponent
      */
@@ -139,7 +138,7 @@ public class Ring {
     /**
      * Returns whether the opponent is currently visible.
      * 
-     * @return { @code true } if opponent is visible, { @code false } otherwise
+     * @return {@code true} if opponent is visible, {@code false} otherwise
      */
     public boolean isOpponentVisible() {
         boolean result = false;
@@ -215,7 +214,7 @@ public class Ring {
      * available fernies is decremented accordingly.
      * <p>
      * If the targeted node does not belong to the opponent or another invalid move
-     * is attempted, a { @link MoveException } is thrown.
+     * is attempted, a {@link MoveException} is thrown.
      * <p>
      * If the number of fernies placed on the node minus the opponent's fernies
      * exceeds the maximum number of fernies allowed per node, the attack is carried
@@ -255,7 +254,7 @@ public class Ring {
      * Places fernies on a node. The number of available fernies is decremented
      * accordingly.
      * <p>
-     * If an invalid move is attempted, a { @link MoveException } is thrown.
+     * If an invalid move is attempted, a {@link MoveException} is thrown.
      * <p>
      * If the number of fernies to be placed on the node plus the fernies already
      * present on the node exceeds the maximum number of fernies allowed per node,
@@ -277,7 +276,6 @@ public class Ring {
                     "Node does not exist.");
         }
         if (node.getOwner() == Owner.THEIRS) {
-            // TODO entferne vor Abgabe
             throw new MoveException(
                     "You are trying to place fernies on an opponent node. Use the attack method instead.");
         } else if (fernies + node.getFernieCount() > maxFerniesPerNode) {
@@ -297,7 +295,7 @@ public class Ring {
      * <p>
      * If an attempt is made to remove fernies from a node not owned by the agent,
      * or to remove more fernies than are present on the node, a
-     * { @link MoveException } is thrown.
+     * {@link MoveException} is thrown.
      *
      * @param nodeNumber the number of the node from which fernies should be removed
      * @param fernies    the number of fernies to remove
@@ -323,7 +321,7 @@ public class Ring {
     /**
      * Returns whether all nodes owned by a given owner are occupied to maximum fernie capacity.
      * @param owner the owner
-     * @return true if all nodes by the owner are fully occupied, false otherwise
+     * @return {@code true} if all nodes by the owner are fully occupied, {@code false} otherwise
      */
     public boolean isRingFull(Owner owner) {
         for (Node node : getNodes(owner)) {
@@ -445,7 +443,7 @@ public class Ring {
 
 
     /**
-     * Returns a list of nodes owned by the opponent which have a given numbers of free neighbors.
+     * Returns a list of nodes owned by the opponent which have a given numbers of free neighbors in both directions.
      * @param forwards required free nodes forwards
      * @param backwards required free nodes backwards
      * @return node list
@@ -523,8 +521,7 @@ public class Ring {
     }
     
     /**
-     * This method checks whether the nodes on either side of a given node are occupied by the opponent. This serves to avoid unintended edge battles.
-     * @param ring ring
+     * Checks whether the nodes on either side of a given node are occupied by the opponent. This serves to avoid unintended edge battles.
      * @param node node which should be checked for neighbors
      * @return true if opponent occupies neighboring nodes, else false
      */

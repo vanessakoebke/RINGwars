@@ -8,6 +8,10 @@ import model.*;
 public class MixedStrategy extends Strategy {
     double[] ratio;
 
+    /**
+     * Initializes the strategy object.
+     * @param notes the notes
+     */
     public MixedStrategy(Notes notes) {
         super(notes);
         this.ratio = notes.getRatiosThisRound();

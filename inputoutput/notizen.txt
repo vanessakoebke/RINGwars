@@ -1,8 +1,0 @@
-Gegnerische Strategie: UNBEKANNT
-Gegnerische Angriffe insgesamt: 0
-Gegnerische Angriffe in der letzten Runde: 0
-Sichtbarkeitsreichweite: 2
-Meine Angriffe in der letzten Runde: 
-Vom Gegner abgewehrte Angriffe insgesamt: 0.0
-Vom Gegner abgewehrte Angriffe letzte Runde: 0.0
-Puffer für meine Angriffe: 1.1

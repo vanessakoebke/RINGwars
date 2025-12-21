@@ -34,19 +34,19 @@ public class RINGwars_8878390_Koebke_Vanessa {
             System.out.println(e.getMessage());
             System.out.println("An empty move file will be created.");
         }
-        // TODO Disable tracker block before handing in.
-        Tracker.read();
-        if (round == 1) {
-            Tracker.flag = false;
-        }
-        if (!Tracker.flag) {
-            if (ring.getVisibilityPercentage() == 1 && ring.getNodes(Owner.THEIRS).size() == 0) {
-                Tracker.addWin();
-            } else if (ring.getNodes(Owner.MINE).size() == 0) {
-                Tracker.addLoss();
-            }
-            Tracker.write();
-        }
+        // Begin tracker blocked. This was used to track my wins and losses over the course of various games. See PDF documentation for its use.
+//        Tracker.read();
+//        if (round == 1) {
+//            Tracker.flag = false;
+//        }
+//        if (!Tracker.flag) {
+//            if (ring.getVisibilityPercentage() == 1 && ring.getNodes(Owner.THEIRS).size() == 0) {
+//                Tracker.addWin();
+//            } else if (ring.getNodes(Owner.MINE).size() == 0) {
+//                Tracker.addLoss();
+//            }
+//            Tracker.write();
+//        }
         // End tracker block
         Notes notes = Util.readNotes(agentName, ring, round);
         Strategy strategy = null;

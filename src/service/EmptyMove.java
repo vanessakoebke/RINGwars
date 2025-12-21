@@ -9,7 +9,7 @@ public class EmptyMove extends Strategy {
 
     /**
      * Initializes the Strategy object.
-     * @param notes
+     * @param notes the notes
      */
     public EmptyMove(Notes notes) {
         super(notes);
@@ -17,7 +17,7 @@ public class EmptyMove extends Strategy {
 
     /**
      * Returns null due to invalid step file.
-     * @param the ring
+     * @param ring the ring
      * @return null
      */
     @Override

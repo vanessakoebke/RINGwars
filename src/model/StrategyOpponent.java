@@ -2,11 +2,36 @@ package model;
 
 /**
  * Represents the strategy of the opponent in terms of the level of aggressiveness and defensiveness. 
- * <p>
- * 1 corresponds to low, 2 to middle, 3 to high.
  */
 public enum StrategyOpponent {
-    UNKNOWN, AGRESSIVE_1, AGRESSIVE_2, AGRESSIVE_3, DEFENSIVE_1, DEFENSIVE_2, DEFENSIVE_3;
+    /**
+     * Unknown aggressiveness or defensiveness
+     */
+    UNKNOWN, 
+    /**
+     * Low aggressiveness
+     */
+    AGRESSIVE_1, 
+    /**
+     * Medium aggressiveness
+     */
+    AGRESSIVE_2, 
+    /**
+     * High aggressiveness
+     */
+    AGRESSIVE_3, 
+    /**
+     * Low defensiveness
+     */
+    DEFENSIVE_1, 
+    /**
+     * Medium defensiveness
+     */
+    DEFENSIVE_2, 
+    /**
+     * High defensiveness
+     */
+    DEFENSIVE_3;
 }
 
 

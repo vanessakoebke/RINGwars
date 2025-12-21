@@ -76,7 +76,7 @@ public class Node {
      * If the node is invisible, a {@link MoveException} is thrown. 
      * 
      * @param fernies fernies to be added
-     * @throws MoveException thrown if the move is invalid
+     * @throws MoveException thrown if the move is invalid or discouraged
      */
     public void addFernies(int fernies) throws MoveException {
         if (owner == Owner.MINE) {
@@ -99,7 +99,7 @@ public class Node {
     }
 
     /**
-     * Removes a given number of fernies from a node.
+     * Removes a given number of fernies from the node.
      * <p>
      * If the node belongs to the agent, and the current fernie count minus the fernies to be removed is >= 0, the move is carried out.
      * <p>

@@ -3,7 +3,7 @@ package service;
 import model.Notes;
 
 /**
- * Attacks the nodes with the lowest fernie counts.
+ * Represents a strategy that attacks the nodes with the lowest fernie counts.
  */
 public class AttackMin extends Attack {
     

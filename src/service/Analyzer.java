@@ -10,7 +10,8 @@ public class Analyzer {
     
     /**
      * Returns a strategy based on the state of the ring this round, and the knowledge the agent gathered from previous rounds.
-     * 
+     * @param thisRound ring in the current round
+     * @param notes the notes
      * @return selected strategy
      */
     public static Strategy getStrategy(Ring thisRound, Notes notes) {

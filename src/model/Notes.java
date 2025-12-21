@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Represents the notes that the agents creates during the game and which it
  * accesses during each round to determine its behavior. The notes contain information about the state of the game (e.g. the current round
- * or the visibility range), about my agent's and the opponent's behavior (e.g. attacks or blocks).
+ * or the visibility range), and about my agent's and the opponent's behavior (e.g. attacks or blocks).
  */
 public class Notes {
     private boolean initialAnalysis; //whether the first analysis in round 2 was carried out successfully
@@ -42,7 +42,7 @@ public class Notes {
      * @param blockedAttacksLastRound relative number of my attacks that were blocked by the opponent during the previous round
      * @param attackBuffer attack buffer
      * @param ratios ratio of basic strategies used for the Mixed Strategy
-     * @param analysis { @code true } if the initial analysis was successful, { @code false } otherwise
+     * @param analysis {@code true} if the initial analysis was successful, {@code false} otherwise
      */
     public Notes(int round, StrategyOpponent[] strategyOpponent, int totalAttacksByOpponent,
             int lastRoundAttacksByOpponent, int visibility, List<Integer> myAttacksLastRound, List<Integer> abandoned,
@@ -153,7 +153,7 @@ public class Notes {
 
     /**
      * Returns the total number of attacks the opponent has carried out in this game.
-     * @return total number of attacks.
+     * @return total number of attacks
      */
     public int getOpponentAttacksTotal() {
         return totalAttacksByOpponent;
@@ -177,7 +177,7 @@ public class Notes {
 
     /**
      * Returns the nodes that my agent has attacked during the previous round.
-     * @return
+     * @return the list of nodes that the agent attacked
      */
     public List<Integer> getMyAttacks() {
         return myAttacksThisRound;
@@ -373,7 +373,7 @@ public class Notes {
     /**
      * Checks if the calculated ratios are not superior to 1.
      * 
-     * @return { @code true } if the sum of the ratios is <= 1, { @code false } otherwise
+     * @return {@code true} if the sum of the ratios is <= 1, {@code false} otherwise
      */
     private boolean checkRatios() {
         return ratios[0] + ratios[1] + ratios[2] + ratios[3] + ratios[4] <= 1;

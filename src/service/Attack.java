@@ -13,7 +13,7 @@ public abstract class Attack extends Strategy {
     /**
      * Initializes the attack strategy with the notes and the information whether the strongest or weakest nodes will be attacked.
      * @param notes the notes
-     * @param attackMax true if the strongest nodes will be attacked, false otherwise
+     * @param attackMax {@code true} if the strongest nodes will be attacked, {@code false} otherwise
      */
     public Attack(Notes notes, boolean attackMax) {
         super(notes);

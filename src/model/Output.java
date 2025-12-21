@@ -25,8 +25,7 @@ public class Output {
     }
 
     /**
-     * Returns the output as a String list. If the output is invalid, an empty
-     * String list is returned.
+     * Returns the output as a String list. If the current output is invalid, the Fallback strategy is carried out.
      * 
      * @param ring the ring
      * @return output as String list
@@ -35,7 +34,7 @@ public class Output {
         List<String> outputString = new ArrayList<String>();
         if (!check()) {
             System.out.println("Something's wrong with the output. Use FallBack strategy.");
-            Output fallback = new FallBack(null).move(ring); //The Fallback strategy doesn't use neither the notes nor the ring, therefore both are just dummy parameters.
+            Output fallback = new FallBack(null).move(ring); //The Fallback strategy doesn't use the notes, therefore this is just a dummy parameter.
             for (Line line : fallback.outputList) {
                 outputString.add(line.nodeNumber + "," + line.fernies);
             }

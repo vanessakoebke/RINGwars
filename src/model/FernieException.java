@@ -1,10 +1,10 @@
 package model;
 
 /**
- * Exception thrown when the agent tries to place more fernies on a node than is allowed by the max fernie count per node. 
+ * Thrown when the agent tries to place more fernies on a node than is allowed by the max fernie count per node. 
  * Is a subclass of {@link MoveException}.
  * <p>
- * The number of fernies that has actually been added can be retrieved by {@link #getFernies()}
+ * The number of fernies that has actually been added can be retrieved by {@link #getFernies()}.
  */
 public class FernieException extends MoveException {
     private int actualFernies; //number of fernies that was actually placed
