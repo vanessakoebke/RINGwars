@@ -9,7 +9,7 @@ import java.util.*;
  */
 public class Notes {
     private boolean initialAnalysis; //whether the first analysis in round 2 was carried out successfully
-    private int currentRound; 
+    static private int currentRound; //static because it needs to be accessed from points in the program were the notes object is not available
     private int visibilityRadius;
     private StrategyOpponent[] strategyOpponent; //Element 0 represents the opponent's aggressiveness and element 1 their defensiveness.
     private int totalAttacksByOpponent; //Total number of attacks that the opponent carried out against my agent during the current game.
@@ -47,7 +47,7 @@ public class Notes {
     public Notes(int round, StrategyOpponent[] strategyOpponent, int totalAttacksByOpponent,
             int lastRoundAttacksByOpponent, int visibility, List<Integer> myAttacksLastRound, List<Integer> abandoned,
             double blockedAttacksTotal, double blockedAttacksLastRound, double attackBuffer, double[] ratios, boolean analysis) {
-        this.currentRound = round;
+        Notes.currentRound = round;
         this.strategyOpponent = strategyOpponent;
         if (strategyOpponent[0] == null) {
             this.strategyOpponent[0] = StrategyOpponent.UNKNOWN;
@@ -239,7 +239,7 @@ public class Notes {
      * Returns the current round number.
      * @return current round
      */
-    public int getCurrentRound() {
+    public static int getCurrentRound() {
         return currentRound;
     }
 

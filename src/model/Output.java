@@ -51,7 +51,11 @@ public class Output {
     private boolean check() {
         int sum = 0;
         for (Line line : outputList) {
-            sum += line.fernies;
+            //Since the ferniesTotal attribute already includes all fernies the agent own (already placed and new), the removals may not be counted because they are
+            //already factored in. Therefore only the placements are counted.
+            if (line.fernies > 0) {
+                sum += line.fernies;
+            }
         }
         return ferniesTotal >= sum;
     }

@@ -16,7 +16,7 @@ public class Analyzer {
      */
     public static Strategy getStrategy(Ring thisRound, Notes notes) {
         // Analyze the results of the previous round.
-        if (notes.getCurrentRound() != 1) {
+        if (Notes.getCurrentRound() != 1) {
             analyze(thisRound, notes);
         }
         /*
@@ -123,8 +123,8 @@ public class Analyzer {
 
         if (notes.getBlockedAttacksTotal() != -1 && blockedAttacksLastRoundRel != -1) {
             notes.setBlockedAttacksTotal(
-                    (blockedAttacksLastRoundRel + notes.getBlockedAttacksTotal() * (notes.getCurrentRound() - 1))
-                    / notes.getCurrentRound());            
+                    (blockedAttacksLastRoundRel + notes.getBlockedAttacksTotal() * (Notes.getCurrentRound() - 1))
+                    / Notes.getCurrentRound());            
         }
         notes.initNewRound();
         

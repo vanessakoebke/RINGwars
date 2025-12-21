@@ -27,7 +27,7 @@ public class FallBack extends Strategy {
         Output output;
         try {
             // As this strategy is called upon when others have failed, the ring is read anew from the step file in order to undo changes from previous strategies.
-            ring = Util.readStatusFile(String.valueOf(notes.getCurrentRound()));
+            ring = Util.readStatusFile(String.valueOf(Notes.getCurrentRound()));
             output = new Output(ring.getMaxFerniesThisRound());
             List<Node> mine = ring.getNodes(Owner.MINE);
             Node node = null;
